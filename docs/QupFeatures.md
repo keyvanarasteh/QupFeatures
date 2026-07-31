@@ -1,9 +1,9 @@
 # QupFeatures — architecture and migration overview
 
 **Repository:** <https://github.com/keyvanarasteh/QupFeatures>  
-**Current release:** [v0.6.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.6.0)  
+**Current release:** [v0.7.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.7.0)  
 **Distribution:** source-only multi-product Swift package (no XCFramework)  
-**Last verification:** 2026-07-31 (`swift build --product InfoPages` green)
+**Last verification:** 2026-07-31 (`swift build --product DynamicPagesFeature` green)
 
 ## Purpose
 
@@ -38,10 +38,10 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | QupFeatureContracts | https://github.com/keyvanarasteh/QupFeatureContracts.git | `11.13.0` | `FeatureContracts` |
 | QupQlineAuth | https://github.com/keyvanarasteh/QupQlineAuth.git | `10.1.0` | `QlineAuth` |
 | QupUX | https://github.com/keyvanarasteh/QupUX.git | `1.1.0` | `LayoutSystem`, `ComponentSystem` |
-| QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `AIAPI`, `ProjectsAPI`, `TasksAPI`, `AdminAPI`, `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
+| QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `AIAPI`, `DynamicPagesAPI`, `ProjectsAPI`, `TasksAPI`, `AdminAPI`, `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
 | QupSwiftAISDK | https://github.com/keyvanarasteh/QupSwiftAISDK.git | `10.0.4` | `SwiftAISDK`, `AISDKProvider`, providers, utils |
 | QupFoundationModelsKit | https://github.com/keyvanarasteh/QupFoundationModelsKit.git | `10.1.1` | `FoundationModelsKit` |
-| QupDynamicUI | https://github.com/keyvanarasteh/QupDynamicUI.git | `10.1.1` | `DynamicUI`, `DynamicUILayout`, `DynamicUIComponents` |
+| QupDynamicUI | https://github.com/keyvanarasteh/QupDynamicUI.git | `10.1.1` | `DynamicUI`, `DynamicUILayout`, `DynamicUIComponents`, `DynamicUIHPC` |
 
 **Repoint map (old → new):**
 
@@ -53,7 +53,7 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | `QupWikiAPI` / path `WikiAPI` | **QupAPI** product `WikiAPI` |
 | path `HostingerProxyAPI` | **QupAPI** product `HostingerProxyAPI` |
 | `QupAIAPI` / SSH AIAPI | **QupAPI** product `AIAPI` |
-| path `ProjectsAPI` / `TasksAPI` / `AdminAPI` | **QupAPI** products same names |
+| path `ProjectsAPI` / `TasksAPI` / `AdminAPI` / `DynamicPagesAPI` | **QupAPI** products same names |
 | path/SSH `CrashReporting` | **Dropped** where unused; otherwise **QupCore** |
 | `QupComponentSystem` / path ComponentSystem | **QupUX** product `ComponentSystem` |
 | `QupLayoutSystem` (InfoPages unused) | **Dropped**; use **QupUX** `LayoutSystem` when needed |
@@ -119,6 +119,16 @@ About, Contact, and Privacy feature views; DynamicUI host bridge for form-driven
 sections. Legacy `CrashReporting` and `LayoutSystem` package lines were unused
 in sources and omitted.
 
+### Wave G (v0.7.0)
+
+| Module | Former repo | Depends on |
+|---|---|---|
+| `DynamicPagesFeature` | `QupDynamicPagesFeature` / Qupertino | FeatureContracts, DesignSystem, QlineAuth, Networking, **DynamicPagesAPI** (QupAPI), DynamicUI / Layout / Components / **HPC** ≥ **10.1.1** |
+
+List, editor, form sheet, and preview for dynamic pages. Legacy monorepo
+`path:` deps and unused CrashReporting / LayoutSystem / ComponentSystem package
+lines rewritten or dropped.
+
 ### Tier-6 ServersAPI — not a QupFeatures product
 
 The Qupertino folder `ServersAPI` (tier 6) contained **byte-identical** sources to
@@ -134,7 +144,6 @@ collided on `import ServersAPI`.
 | Module | Gate |
 |---|---|
 | `TamizlaFeature` | Local Rust `qrust-scan` linker path + `CQrustScanShim` |
-| `DynamicPagesFeature` | Heavy monorepo `path:` deps → rewrite to HTTPS Qup* + DynamicUI |
 | `AppIntentsSystem`, `WebAnalyzerFeature` | Structural mismatch — stay standalone |
 
 ## Prep standalones (supporting Wave D)
@@ -155,7 +164,7 @@ QupFeatures:
 # packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.6.0
+  from: 0.7.0
 ```
 
 Then: `use-package-mode.sh production --resolve` and `setup.py validate production`.
@@ -171,13 +180,14 @@ Then: `use-package-mode.sh production --resolve` and `setup.py validate producti
 | `iCloudCoreTests` | iCloud feature smoke |
 | `AIFeatureTests` | Section surface, partial load, credential reveal |
 | `ProjectsFeatureTests` | Projects feature smoke / API wiring |
+| `DynamicPagesFeatureTests` | Dynamic pages feature / API wiring |
 
 `swift test` may fail to load **binary** XCFramework deps under SwiftPM’s testing
 helper (rpath); `swift build` is the required gate for this umbrella.
 
 ## Known limitations
 
-- Waves A–F only — not the full Tier-6 set.
+- Waves A–G only — not the full Tier-6 set.
 - Some AI agent setup UI is AppKit-oriented (macOS).
 - Mantarlife embeds lab HTML as package resources.
 - No binary distribution / library evolution required for source umbrella.

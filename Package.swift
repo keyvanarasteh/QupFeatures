@@ -4,10 +4,10 @@ import PackageDescription
 /// Umbrella source package for Tier-6 feature modules.
 ///
 /// ```swift
-/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.6.0"),
+/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.7.0"),
 /// // products: AIAgentsFeature, ScratchFeature, MantarlifeFeature,
 /// //           FoundryUI, WikiUI, HostingerUI, iCloudCore, AIFeature,
-/// //           ProjectsFeature, InfoPages, ...
+/// //           ProjectsFeature, InfoPages, DynamicPagesFeature, ...
 /// ```
 ///
 /// External (latest published tags):
@@ -17,7 +17,7 @@ import PackageDescription
 /// - [QupFeatureContracts](https://github.com/keyvanarasteh/QupFeatureContracts) ≥ 11.13.0
 /// - [QupQlineAuth](https://github.com/keyvanarasteh/QupQlineAuth) ≥ 10.1.0
 /// - [QupUX](https://github.com/keyvanarasteh/QupUX) ≥ 1.1.0 (ComponentSystem, LayoutSystem)
-/// - [QupAPI](https://github.com/keyvanarasteh/QupAPI) ≥ 1.0.1 (AIAPI, ProjectsAPI, TasksAPI, AdminAPI, …)
+/// - [QupAPI](https://github.com/keyvanarasteh/QupAPI) ≥ 1.0.1 (AIAPI, DynamicPagesAPI, ProjectsAPI, …)
 /// - [QupSwiftAISDK](https://github.com/keyvanarasteh/QupSwiftAISDK) ≥ 10.0.4
 /// - [QupFoundationModelsKit](https://github.com/keyvanarasteh/QupFoundationModelsKit) ≥ 10.1.1
 /// - [QupDynamicUI](https://github.com/keyvanarasteh/QupDynamicUI) ≥ 10.1.1
@@ -28,6 +28,7 @@ import PackageDescription
 /// Wave D: AIFeature (QupAPI AIAPI + SwiftAISDK + FoundationModelsKit).
 /// Wave E: ProjectsFeature (ProjectsAPI/TasksAPI/AdminAPI + FMK; CrashReporting dropped).
 /// Wave F: InfoPages (DynamicUI + ComponentSystem via QupUX).
+/// Wave G: DynamicPagesFeature (DynamicPagesAPI + full DynamicUI product set).
 
 let package = Package(
     name: "QupFeatures",
@@ -43,6 +44,7 @@ let package = Package(
         .library(name: "AIFeature", targets: ["AIFeature"]),
         .library(name: "ProjectsFeature", targets: ["ProjectsFeature"]),
         .library(name: "InfoPages", targets: ["InfoPages"]),
+        .library(name: "DynamicPagesFeature", targets: ["DynamicPagesFeature"]),
     ],
     dependencies: [
         .package(url: "https://github.com/keyvanarasteh/QupCore.git", from: "11.12.0"),
@@ -249,6 +251,34 @@ let package = Package(
                 .product(name: "DynamicUIComponents", package: "QupDynamicUI"),
             ],
             path: "QupFeaturesSource/Sources/InfoPages"
+        ),
+
+        // MARK: Wave G (DynamicPagesFeature)
+
+        .target(
+            name: "DynamicPagesFeature",
+            dependencies: [
+                .product(name: "FeatureContracts", package: "QupFeatureContracts"),
+                .product(name: "DesignSystem", package: "QupDesignSystem"),
+                .product(name: "QlineAuth", package: "QupQlineAuth"),
+                .product(name: "Networking", package: "QupNetworking"),
+                .product(name: "DynamicPagesAPI", package: "QupAPI"),
+                .product(name: "DynamicUI", package: "QupDynamicUI"),
+                .product(name: "DynamicUILayout", package: "QupDynamicUI"),
+                .product(name: "DynamicUIComponents", package: "QupDynamicUI"),
+                .product(name: "DynamicUIHPC", package: "QupDynamicUI"),
+            ],
+            path: "QupFeaturesSource/Sources/DynamicPagesFeature"
+        ),
+        .testTarget(
+            name: "DynamicPagesFeatureTests",
+            dependencies: [
+                "DynamicPagesFeature",
+                .product(name: "DynamicPagesAPI", package: "QupAPI"),
+                .product(name: "Networking", package: "QupNetworking"),
+                .product(name: "DynamicUI", package: "QupDynamicUI"),
+            ],
+            path: "QupFeaturesSource/Tests/DynamicPagesFeatureTests"
         ),
     ]
 )
