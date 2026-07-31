@@ -4,9 +4,10 @@ import PackageDescription
 /// Umbrella source package for Tier-6 feature modules.
 ///
 /// ```swift
-/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.4.0"),
+/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.5.0"),
 /// // products: AIAgentsFeature, ScratchFeature, MantarlifeFeature,
-/// //           FoundryUI, WikiUI, HostingerUI, iCloudCore, AIFeature, ...
+/// //           FoundryUI, WikiUI, HostingerUI, iCloudCore, AIFeature,
+/// //           ProjectsFeature, ...
 /// ```
 ///
 /// External (latest published tags):
@@ -16,14 +17,15 @@ import PackageDescription
 /// - [QupFeatureContracts](https://github.com/keyvanarasteh/QupFeatureContracts) ≥ 11.13.0
 /// - [QupQlineAuth](https://github.com/keyvanarasteh/QupQlineAuth) ≥ 10.1.0
 /// - [QupUX](https://github.com/keyvanarasteh/QupUX) ≥ 1.1.0 (LayoutSystem)
-/// - [QupAPI](https://github.com/keyvanarasteh/QupAPI) ≥ 1.0.1 (AIAPI, FoundryAPI, WikiAPI, HostingerProxyAPI, …)
+/// - [QupAPI](https://github.com/keyvanarasteh/QupAPI) ≥ 1.0.1 (AIAPI, ProjectsAPI, TasksAPI, AdminAPI, …)
 /// - [QupSwiftAISDK](https://github.com/keyvanarasteh/QupSwiftAISDK) ≥ 10.0.4
-/// - [QupFoundationModelsKit](https://github.com/keyvanarasteh/QupFoundationModelsKit) ≥ 10.1.0
+/// - [QupFoundationModelsKit](https://github.com/keyvanarasteh/QupFoundationModelsKit) ≥ 10.1.1
 ///
 /// Wave B note: Tier-6 `ServersAPI` under Qupertino was a **duplicate** of
 /// QupAPI product `ServersAPI` (identical sources) — not folded here; use QupAPI.
 /// Wave C: iCloudCore; prep DynamicUI / SwiftAISDK / FMK standalones.
 /// Wave D: AIFeature (QupAPI AIAPI + SwiftAISDK + FoundationModelsKit).
+/// Wave E: ProjectsFeature (ProjectsAPI/TasksAPI/AdminAPI + FMK; CrashReporting dropped).
 
 let package = Package(
     name: "QupFeatures",
@@ -37,6 +39,7 @@ let package = Package(
         .library(name: "HostingerUI", targets: ["HostingerUI"]),
         .library(name: "iCloudCore", targets: ["iCloudCore"]),
         .library(name: "AIFeature", targets: ["AIFeature"]),
+        .library(name: "ProjectsFeature", targets: ["ProjectsFeature"]),
     ],
     dependencies: [
         .package(url: "https://github.com/keyvanarasteh/QupCore.git", from: "11.12.0"),
@@ -200,6 +203,32 @@ let package = Package(
                 .product(name: "FeatureContracts", package: "QupFeatureContracts"),
             ],
             path: "QupFeaturesSource/Tests/AIFeatureTests"
+        ),
+
+        // MARK: Wave E (ProjectsFeature)
+
+        .target(
+            name: "ProjectsFeature",
+            dependencies: [
+                .product(name: "FeatureContracts", package: "QupFeatureContracts"),
+                .product(name: "DesignSystem", package: "QupDesignSystem"),
+                .product(name: "QlineAuth", package: "QupQlineAuth"),
+                .product(name: "Networking", package: "QupNetworking"),
+                .product(name: "ProjectsAPI", package: "QupAPI"),
+                .product(name: "TasksAPI", package: "QupAPI"),
+                .product(name: "AdminAPI", package: "QupAPI"),
+                .product(name: "FoundationModelsKit", package: "QupFoundationModelsKit"),
+            ],
+            path: "QupFeaturesSource/Sources/ProjectsFeature"
+        ),
+        .testTarget(
+            name: "ProjectsFeatureTests",
+            dependencies: [
+                "ProjectsFeature",
+                .product(name: "ProjectsAPI", package: "QupAPI"),
+                .product(name: "Networking", package: "QupNetworking"),
+            ],
+            path: "QupFeaturesSource/Tests/ProjectsFeatureTests"
         ),
     ]
 )

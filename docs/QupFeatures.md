@@ -1,9 +1,9 @@
 # QupFeatures — architecture and migration overview
 
 **Repository:** <https://github.com/keyvanarasteh/QupFeatures>  
-**Current release:** [v0.4.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.4.0)  
+**Current release:** [v0.5.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.5.0)  
 **Distribution:** source-only multi-product Swift package (no XCFramework)  
-**Last verification:** 2026-07-31 (`swift build --product AIFeature` green)
+**Last verification:** 2026-07-31 (`swift build --product ProjectsFeature` green)
 
 ## Purpose
 
@@ -38,7 +38,7 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | QupFeatureContracts | https://github.com/keyvanarasteh/QupFeatureContracts.git | `11.13.0` | `FeatureContracts` |
 | QupQlineAuth | https://github.com/keyvanarasteh/QupQlineAuth.git | `10.1.0` | `QlineAuth` |
 | QupUX | https://github.com/keyvanarasteh/QupUX.git | `1.1.0` | `LayoutSystem` |
-| QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `AIAPI`, `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
+| QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `AIAPI`, `ProjectsAPI`, `TasksAPI`, `AdminAPI`, `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
 | QupSwiftAISDK | https://github.com/keyvanarasteh/QupSwiftAISDK.git | `10.0.4` | `SwiftAISDK`, `AISDKProvider`, providers, utils |
 | QupFoundationModelsKit | https://github.com/keyvanarasteh/QupFoundationModelsKit.git | `10.1.1` | `FoundationModelsKit` |
 
@@ -52,6 +52,8 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | `QupWikiAPI` / path `WikiAPI` | **QupAPI** product `WikiAPI` |
 | path `HostingerProxyAPI` | **QupAPI** product `HostingerProxyAPI` |
 | `QupAIAPI` / SSH AIAPI | **QupAPI** product `AIAPI` |
+| path `ProjectsAPI` / `TasksAPI` / `AdminAPI` | **QupAPI** products same names |
+| path/SSH `CrashReporting` on ProjectsFeature | **Dropped** (unused in sources) |
 | SSH `QupSwiftAISDK` / `QupFoundationModelsKit` | HTTPS tags ≥ 10.0.4 / **10.1.1** |
 | path / SSH `NavigationSystem` on HostingerUI | **Dropped** (unused in sources) |
 | SSH `git@github.com:…` | HTTPS |
@@ -93,6 +95,16 @@ FoundationModels via `FoundationModelsKit` and remote providers via
 `SwiftAISDK` / provider modules. DesignSystem and QlineAuth were listed on the
 legacy standalone manifest but are **not** imported by current sources.
 
+### Wave E (v0.5.0)
+
+| Module | Former repo | Depends on |
+|---|---|---|
+| `ProjectsFeature` | `QupProjectsFeature` / `SWIFT/Qupertino/ProjectsFeature` | FeatureContracts, DesignSystem, QlineAuth, Networking, **ProjectsAPI** / **TasksAPI** / **AdminAPI** (QupAPI), FoundationModelsKit ≥ **10.1.1** |
+
+List/detail/admin sheets for projects and members; create flow can use on-device
+FMK for spec assist. Legacy `CrashReporting` and explicit `AISDKProvider`
+manifest lines were **unused** in sources and omitted.
+
 ### Tier-6 ServersAPI — not a QupFeatures product
 
 The Qupertino folder `ServersAPI` (tier 6) contained **byte-identical** sources to
@@ -109,7 +121,6 @@ collided on `import ServersAPI`.
 |---|---|
 | `TamizlaFeature` | Local Rust `qrust-scan` linker path + `CQrustScanShim` |
 | `InfoPages` | Needs migrated `QupDynamicUI` ≥ 10.1.1 |
-| `ProjectsFeature` | QupAPI products + SwiftAISDK as required |
 | `DynamicPagesFeature` | Heavy monorepo `path:` deps → rewrite to HTTPS Qup* |
 | `AppIntentsSystem`, `WebAnalyzerFeature` | Structural mismatch — stay standalone |
 
@@ -131,7 +142,7 @@ QupFeatures:
 # packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.4.0
+  from: 0.5.0
 ```
 
 Then: `use-package-mode.sh production --resolve` and `setup.py validate production`.
@@ -146,13 +157,14 @@ Then: `use-package-mode.sh production --resolve` and `setup.py validate producti
 | `FoundryUITests` | Foundry UI smoke |
 | `iCloudCoreTests` | iCloud feature smoke |
 | `AIFeatureTests` | Section surface, partial load, credential reveal |
+| `ProjectsFeatureTests` | Projects feature smoke / API wiring |
 
 `swift test` may fail to load **binary** XCFramework deps under SwiftPM’s testing
 helper (rpath); `swift build` is the required gate for this umbrella.
 
 ## Known limitations
 
-- Waves A–D only — not the full Tier-6 set.
+- Waves A–E only — not the full Tier-6 set.
 - Some AI agent setup UI is AppKit-oriented (macOS).
 - Mantarlife embeds lab HTML as package resources.
 - No binary distribution / library evolution required for source umbrella.
