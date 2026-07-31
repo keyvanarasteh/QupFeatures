@@ -4,7 +4,7 @@ import PackageDescription
 /// Umbrella source package for Tier-6 feature modules.
 ///
 /// ```swift
-/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.1.0"),
+/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.1.1"),
 /// // products: AIAgentsFeature, ScratchFeature, MantarlifeFeature, ...
 /// ```
 ///

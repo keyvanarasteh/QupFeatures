@@ -1,7 +1,7 @@
 # QupFeatures — architecture and migration overview
 
 **Repository:** <https://github.com/keyvanarasteh/QupFeatures>  
-**Current release:** [v0.1.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.1.0)  
+**Current release:** [v0.1.1](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.1.1)  
 **Distribution:** source-only multi-product Swift package (no XCFramework)  
 **Last verification:** 2026-07-31
 
@@ -53,7 +53,7 @@ QupAPI consumer pattern for pure source products).
 | SSH `git@github.com:…` | HTTPS `https://github.com/keyvanarasteh/…` |
 | Stale `from: "10.0.0"` floors | Latest published tags at migration time |
 
-## Wave A products (v0.1.0)
+## Wave A products (v0.1.1)
 
 | Module | Former repo | Depends on |
 |---|---|---|
@@ -84,7 +84,7 @@ QupFeatures:
 # packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.1.0
+  from: 0.1.1
 ```
 
 Add these only when a host target imports a product. Then run
