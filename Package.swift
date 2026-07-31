@@ -4,9 +4,9 @@ import PackageDescription
 /// Umbrella source package for Tier-6 feature modules.
 ///
 /// ```swift
-/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.2.0"),
+/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.3.0"),
 /// // products: AIAgentsFeature, ScratchFeature, MantarlifeFeature,
-/// //           FoundryUI, WikiUI, HostingerUI, ...
+/// //           FoundryUI, WikiUI, HostingerUI, iCloudCore, ...
 /// ```
 ///
 /// External (latest published tags):
@@ -20,6 +20,7 @@ import PackageDescription
 ///
 /// Wave B note: Tier-6 `ServersAPI` under Qupertino was a **duplicate** of
 /// QupAPI product `ServersAPI` (identical sources) — not folded here; use QupAPI.
+/// Wave C prep: DynamicUI → QupDynamicUI v10.1.0; SwiftAISDK → QupSwiftAISDK (standalone).
 
 let package = Package(
     name: "QupFeatures",
@@ -31,6 +32,7 @@ let package = Package(
         .library(name: "FoundryUI", targets: ["FoundryUI"]),
         .library(name: "WikiUI", targets: ["WikiUI"]),
         .library(name: "HostingerUI", targets: ["HostingerUI"]),
+        .library(name: "iCloudCore", targets: ["iCloudCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/keyvanarasteh/QupCore.git", from: "11.12.0"),
@@ -141,6 +143,23 @@ let package = Package(
                 .product(name: "HostingerProxyAPI", package: "QupAPI"),
             ],
             path: "QupFeaturesSource/Sources/HostingerUI"
+        ),
+
+        // MARK: Wave C (path-dep rewrite)
+
+        .target(
+            name: "iCloudCore",
+            dependencies: [
+                .product(name: "QupCore", package: "QupCore"),
+                .product(name: "DesignSystem", package: "QupDesignSystem"),
+                .product(name: "FeatureContracts", package: "QupFeatureContracts"),
+            ],
+            path: "QupFeaturesSource/Sources/iCloudCore"
+        ),
+        .testTarget(
+            name: "iCloudCoreTests",
+            dependencies: ["iCloudCore"],
+            path: "QupFeaturesSource/Tests/iCloudCoreTests"
         ),
     ]
 )

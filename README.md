@@ -5,7 +5,7 @@ Mantarlife lab, and more as migration waves land).
 
 [![Swift 6.0](https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white)](https://swift.org)
 [![SwiftPM compatible](https://img.shields.io/badge/SwiftPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
-[![Release](https://img.shields.io/badge/release-v0.2.0-blue.svg)](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.2.0)
+[![Release](https://img.shields.io/badge/release-v0.3.0-blue.svg)](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.3.0)
 [![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20macOS-lightgrey.svg)](#platform-and-toolchain-support)
 [![Dependencies](https://img.shields.io/badge/dependencies-7-blue.svg)](#distribution-model)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -74,7 +74,7 @@ Feature-level notes:
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.2.0"),
+    .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.3.0"),
 ],
 targets: [
     .target(
@@ -103,7 +103,7 @@ QupFeatures:
 # Config/packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.2.0
+  from: 0.3.0
 ```
 
 Then: `./scripts/use-package-mode.sh local` or `production --resolve`, and

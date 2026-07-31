@@ -1,7 +1,7 @@
 # QupFeatures — architecture and migration overview
 
 **Repository:** <https://github.com/keyvanarasteh/QupFeatures>  
-**Current release:** [v0.2.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.2.0)  
+**Current release:** [v0.3.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.3.0)  
 **Distribution:** source-only multi-product Swift package (no XCFramework)  
 **Last verification:** 2026-07-31
 
@@ -63,7 +63,7 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | `ScratchFeature` | `ScratchFeature` | FeatureContracts, DesignSystem, LayoutSystem (QupUX) |
 | `MantarlifeFeature` | `MantarlifeFeature` | FeatureContracts, DesignSystem, QlineAuth (+ HTML resources) |
 
-### Wave B (v0.2.0)
+### Wave B (v0.3.0)
 
 | Module | Former repo | Depends on |
 |---|---|---|
@@ -101,7 +101,7 @@ QupFeatures:
 # packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.2.0
+  from: 0.3.0
 ```
 
 Then: `use-package-mode.sh production --resolve` and `setup.py validate production`.
@@ -124,3 +124,16 @@ helper (rpath); `swift build` is the required gate for this umbrella.
 - Some AI agent setup UI is AppKit-oriented (macOS).
 - Mantarlife embeds lab HTML as package resources.
 - No binary distribution / library evolution required for source umbrella.
+
+### Wave C (v0.3.0)
+
+| Module | Former repo | Depends on |
+|---|---|---|
+| `iCloudCore` | `iCloudCore` | QupCore, DesignSystem, FeatureContracts |
+
+**Prep standalones (same session):**
+
+| Package | Location | Tag / tip |
+|---|---|---|
+| QupDynamicUI | `Qkit-packages/QupDynamicUI` | **v10.1.0** (HTTPS + QupUX) |
+| QupSwiftAISDK | `Qkit-packages/QupSwiftAISDK` | origin tip (binary multi-product, already HTTPS) |
