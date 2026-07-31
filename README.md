@@ -43,11 +43,12 @@ A remote SwiftPM URL always resolves the **root** manifest.
 | `FoundryUI` | B | Foundry courses / modules / grades / knowledge base UI |
 | `WikiUI` | B | Wiki browse / edit surfaces over `WikiAPI` |
 | `HostingerUI` | B | Hostinger domains / DNS / hosting UI over `HostingerProxyAPI` |
+| `iCloudCore` | C | Photos / calendar / reminders feature surfaces |
 
 **Not folded here (by design):**
 
-- Tier-6 Qupertino `ServersAPI` — **identical** to QupAPI product `ServersAPI`; use **QupAPI**, do not import a second module.
-- TamizlaFeature (Rust linker), InfoPages (DynamicUI), AIFeature / ProjectsFeature (SwiftAISDK / FMK), DynamicPagesFeature / iCloudCore (path-dep rewrite), AppIntentsSystem, WebAnalyzerFeature — see [docs/QupFeatures.md](docs/QupFeatures.md).
+- Tier-6 Qupertino `ServersAPI` — **identical** to QupAPI product `ServersAPI`; use **QupAPI**.
+- TamizlaFeature (Rust linker), InfoPages / DynamicPagesFeature (pin **QupDynamicUI** ≥ 10.1.0), AIFeature / ProjectsFeature (**QupSwiftAISDK** + FoundationModelsKit Step 0 still pending), AppIntentsSystem, WebAnalyzerFeature — see [docs/QupFeatures.md](docs/QupFeatures.md).
 
 ## Platform and toolchain support
 
