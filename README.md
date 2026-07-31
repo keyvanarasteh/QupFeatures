@@ -5,9 +5,9 @@ Mantarlife lab, and more as migration waves land).
 
 [![Swift 6.0](https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white)](https://swift.org)
 [![SwiftPM compatible](https://img.shields.io/badge/SwiftPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
-[![Release](https://img.shields.io/badge/release-v0.1.1-blue.svg)](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.1.1)
+[![Release](https://img.shields.io/badge/release-v0.2.0-blue.svg)](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.2.0)
 [![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20macOS-lightgrey.svg)](#platform-and-toolchain-support)
-[![Dependencies](https://img.shields.io/badge/dependencies-6-blue.svg)](#distribution-model)
+[![Dependencies](https://img.shields.io/badge/dependencies-7-blue.svg)](#distribution-model)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 ## Distribution model
@@ -31,21 +31,23 @@ A remote SwiftPM URL always resolves the **root** manifest.
 | QupFeatureContracts | https://github.com/keyvanarasteh/QupFeatureContracts.git | `11.13.0` | `FeatureContracts` |
 | QupQlineAuth | https://github.com/keyvanarasteh/QupQlineAuth.git | `10.1.0` | `QlineAuth` |
 | QupUX | https://github.com/keyvanarasteh/QupUX.git | `1.1.0` | `LayoutSystem` |
+| QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
 
 ## Features
 
-Wave A products (folded from individual Qupertino feature repos):
+| Product | Wave | Role |
+|---|---|---|
+| `AIAgentsFeature` | A | Agent accounts, setup engine, CLI install checks |
+| `ScratchFeature` | A | Scratch / workbench feature surface |
+| `MantarlifeFeature` | A | Mantarlife lab controls + Coolkit integration UI |
+| `FoundryUI` | B | Foundry courses / modules / grades / knowledge base UI |
+| `WikiUI` | B | Wiki browse / edit surfaces over `WikiAPI` |
+| `HostingerUI` | B | Hostinger domains / DNS / hosting UI over `HostingerProxyAPI` |
 
-| Product | Role |
-|---|---|
-| `AIAgentsFeature` | Agent accounts, setup engine, CLI install checks |
-| `ScratchFeature` | Scratch / workbench feature surface |
-| `MantarlifeFeature` | Mantarlife lab controls + Coolkit integration UI |
+**Not folded here (by design):**
 
-**Not in this package yet** (see [docs/QupFeatures.md](docs/QupFeatures.md)):
-TamizlaFeature (Rust scan linker), InfoPages (needs DynamicUI), AIFeature /
-ProjectsFeature (SwiftAISDK / FoundationModelsKit), DynamicPagesFeature and
-other path-dep-heavy modules, AppIntentsSystem, WebAnalyzerFeature.
+- Tier-6 Qupertino `ServersAPI` — **identical** to QupAPI product `ServersAPI`; use **QupAPI**, do not import a second module.
+- TamizlaFeature (Rust linker), InfoPages (DynamicUI), AIFeature / ProjectsFeature (SwiftAISDK / FMK), DynamicPagesFeature / iCloudCore (path-dep rewrite), AppIntentsSystem, WebAnalyzerFeature — see [docs/QupFeatures.md](docs/QupFeatures.md).
 
 ## Platform and toolchain support
 
@@ -72,15 +74,16 @@ Feature-level notes:
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.1.1"),
+    .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.2.0"),
 ],
 targets: [
     .target(
         name: "MyApp",
         dependencies: [
             .product(name: "AIAgentsFeature", package: "QupFeatures"),
-            .product(name: "ScratchFeature", package: "QupFeatures"),
-            .product(name: "MantarlifeFeature", package: "QupFeatures"),
+            .product(name: "FoundryUI", package: "QupFeatures"),
+            .product(name: "WikiUI", package: "QupFeatures"),
+            .product(name: "HostingerUI", package: "QupFeatures"),
         ]
     ),
 ]
@@ -100,7 +103,7 @@ QupFeatures:
 # Config/packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.1.1
+  from: 0.2.0
 ```
 
 Then: `./scripts/use-package-mode.sh local` or `production --resolve`, and

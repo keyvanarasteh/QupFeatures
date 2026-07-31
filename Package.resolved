@@ -1,6 +1,15 @@
 {
-  "originHash" : "e9c6144798e352f23741b40eb02e00f1103e2084ce72c22866c7849ed294b594",
+  "originHash" : "2ffd62ccac98b01a6693608c71f83135b40eea67aa2af3f3b2c88c8867485756",
   "pins" : [
+    {
+      "identity" : "qupapi",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupAPI.git",
+      "state" : {
+        "revision" : "6ad72a1fe277ecd9e7b8af06d598a00e7d666608",
+        "version" : "1.0.1"
+      }
+    },
     {
       "identity" : "qupcore",
       "kind" : "remoteSourceControl",
