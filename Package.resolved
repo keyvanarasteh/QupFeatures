@@ -1,5 +1,5 @@
 {
-  "originHash" : "d04ed1c055b6dba3d60b0262e80d7868ddf87963db37e3e4f608dd6973a2d07d",
+  "originHash" : "1970472d7ff968244f8d073b9ce6a0d5d1fa65994cbc8dce6a50ee370fb86f5b",
   "pins" : [
     {
       "identity" : "qupapi",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "a3268f104989937e728705befabd45059d4502a4",
         "version" : "10.1.0"
+      }
+    },
+    {
+      "identity" : "qupdynamicui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupDynamicUI.git",
+      "state" : {
+        "revision" : "e456ae6e8947f9e90328bcb714a6dd5bd7cfc943",
+        "version" : "10.1.1"
       }
     },
     {

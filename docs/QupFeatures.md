@@ -1,9 +1,9 @@
 # QupFeatures — architecture and migration overview
 
 **Repository:** <https://github.com/keyvanarasteh/QupFeatures>  
-**Current release:** [v0.5.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.5.0)  
+**Current release:** [v0.6.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.6.0)  
 **Distribution:** source-only multi-product Swift package (no XCFramework)  
-**Last verification:** 2026-07-31 (`swift build --product ProjectsFeature` green)
+**Last verification:** 2026-07-31 (`swift build --product InfoPages` green)
 
 ## Purpose
 
@@ -37,10 +37,11 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | QupNetworking | https://github.com/keyvanarasteh/QupNetworking.git | `10.1.0` | `Networking` |
 | QupFeatureContracts | https://github.com/keyvanarasteh/QupFeatureContracts.git | `11.13.0` | `FeatureContracts` |
 | QupQlineAuth | https://github.com/keyvanarasteh/QupQlineAuth.git | `10.1.0` | `QlineAuth` |
-| QupUX | https://github.com/keyvanarasteh/QupUX.git | `1.1.0` | `LayoutSystem` |
+| QupUX | https://github.com/keyvanarasteh/QupUX.git | `1.1.0` | `LayoutSystem`, `ComponentSystem` |
 | QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `AIAPI`, `ProjectsAPI`, `TasksAPI`, `AdminAPI`, `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
 | QupSwiftAISDK | https://github.com/keyvanarasteh/QupSwiftAISDK.git | `10.0.4` | `SwiftAISDK`, `AISDKProvider`, providers, utils |
 | QupFoundationModelsKit | https://github.com/keyvanarasteh/QupFoundationModelsKit.git | `10.1.1` | `FoundationModelsKit` |
+| QupDynamicUI | https://github.com/keyvanarasteh/QupDynamicUI.git | `10.1.1` | `DynamicUI`, `DynamicUILayout`, `DynamicUIComponents` |
 
 **Repoint map (old → new):**
 
@@ -53,7 +54,10 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | path `HostingerProxyAPI` | **QupAPI** product `HostingerProxyAPI` |
 | `QupAIAPI` / SSH AIAPI | **QupAPI** product `AIAPI` |
 | path `ProjectsAPI` / `TasksAPI` / `AdminAPI` | **QupAPI** products same names |
-| path/SSH `CrashReporting` on ProjectsFeature | **Dropped** (unused in sources) |
+| path/SSH `CrashReporting` | **Dropped** where unused; otherwise **QupCore** |
+| `QupComponentSystem` / path ComponentSystem | **QupUX** product `ComponentSystem` |
+| `QupLayoutSystem` (InfoPages unused) | **Dropped**; use **QupUX** `LayoutSystem` when needed |
+| SSH/path `QupDynamicUI` | HTTPS ≥ **10.1.1** products DynamicUI / Layout / Components |
 | SSH `QupSwiftAISDK` / `QupFoundationModelsKit` | HTTPS tags ≥ 10.0.4 / **10.1.1** |
 | path / SSH `NavigationSystem` on HostingerUI | **Dropped** (unused in sources) |
 | SSH `git@github.com:…` | HTTPS |
@@ -105,6 +109,16 @@ List/detail/admin sheets for projects and members; create flow can use on-device
 FMK for spec assist. Legacy `CrashReporting` and explicit `AISDKProvider`
 manifest lines were **unused** in sources and omitted.
 
+### Wave F (v0.6.0)
+
+| Module | Former repo | Depends on |
+|---|---|---|
+| `InfoPages` | `QupInfoPages` / `SWIFT/Qupertino/InfoPages` | FeatureContracts, DesignSystem, **ComponentSystem** (QupUX), QlineAuth, DynamicUI / DynamicUILayout / DynamicUIComponents ≥ **10.1.1** |
+
+About, Contact, and Privacy feature views; DynamicUI host bridge for form-driven
+sections. Legacy `CrashReporting` and `LayoutSystem` package lines were unused
+in sources and omitted.
+
 ### Tier-6 ServersAPI — not a QupFeatures product
 
 The Qupertino folder `ServersAPI` (tier 6) contained **byte-identical** sources to
@@ -120,8 +134,7 @@ collided on `import ServersAPI`.
 | Module | Gate |
 |---|---|
 | `TamizlaFeature` | Local Rust `qrust-scan` linker path + `CQrustScanShim` |
-| `InfoPages` | Needs migrated `QupDynamicUI` ≥ 10.1.1 |
-| `DynamicPagesFeature` | Heavy monorepo `path:` deps → rewrite to HTTPS Qup* |
+| `DynamicPagesFeature` | Heavy monorepo `path:` deps → rewrite to HTTPS Qup* + DynamicUI |
 | `AppIntentsSystem`, `WebAnalyzerFeature` | Structural mismatch — stay standalone |
 
 ## Prep standalones (supporting Wave D)
@@ -142,7 +155,7 @@ QupFeatures:
 # packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.5.0
+  from: 0.6.0
 ```
 
 Then: `use-package-mode.sh production --resolve` and `setup.py validate production`.
@@ -164,7 +177,7 @@ helper (rpath); `swift build` is the required gate for this umbrella.
 
 ## Known limitations
 
-- Waves A–E only — not the full Tier-6 set.
+- Waves A–F only — not the full Tier-6 set.
 - Some AI agent setup UI is AppKit-oriented (macOS).
 - Mantarlife embeds lab HTML as package resources.
 - No binary distribution / library evolution required for source umbrella.

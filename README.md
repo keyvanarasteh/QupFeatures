@@ -5,9 +5,9 @@ Mantarlife lab, AI providers/inference UI, projects admin, and more as waves lan
 
 [![Swift 6.0](https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white)](https://swift.org)
 [![SwiftPM compatible](https://img.shields.io/badge/SwiftPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
-[![Release](https://img.shields.io/badge/release-v0.5.0-blue.svg)](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.5.0)
+[![Release](https://img.shields.io/badge/release-v0.6.0-blue.svg)](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.6.0)
 [![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20macOS-lightgrey.svg)](#platform-and-toolchain-support)
-[![Dependencies](https://img.shields.io/badge/dependencies-9-blue.svg)](#distribution-model)
+[![Dependencies](https://img.shields.io/badge/dependencies-10-blue.svg)](#distribution-model)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 ## Distribution model
@@ -30,10 +30,11 @@ A remote SwiftPM URL always resolves the **root** manifest.
 | QupNetworking | https://github.com/keyvanarasteh/QupNetworking.git | `10.1.0` | `Networking` |
 | QupFeatureContracts | https://github.com/keyvanarasteh/QupFeatureContracts.git | `11.13.0` | `FeatureContracts` |
 | QupQlineAuth | https://github.com/keyvanarasteh/QupQlineAuth.git | `10.1.0` | `QlineAuth` |
-| QupUX | https://github.com/keyvanarasteh/QupUX.git | `1.1.0` | `LayoutSystem` |
+| QupUX | https://github.com/keyvanarasteh/QupUX.git | `1.1.0` | `LayoutSystem`, `ComponentSystem` |
 | QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `AIAPI`, `ProjectsAPI`, `TasksAPI`, `AdminAPI`, `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
 | QupSwiftAISDK | https://github.com/keyvanarasteh/QupSwiftAISDK.git | `10.0.4` | `SwiftAISDK`, providers, AISDK* modules |
 | QupFoundationModelsKit | https://github.com/keyvanarasteh/QupFoundationModelsKit.git | `10.1.1` | `FoundationModelsKit` |
+| QupDynamicUI | https://github.com/keyvanarasteh/QupDynamicUI.git | `10.1.1` | `DynamicUI`, `DynamicUILayout`, `DynamicUIComponents` |
 
 ## Features
 
@@ -48,11 +49,12 @@ A remote SwiftPM URL always resolves the **root** manifest.
 | `iCloudCore` | C | Photos / calendar / reminders feature surfaces |
 | `AIFeature` | D | AI v2 providers / models / credentials / inference / usage UI |
 | `ProjectsFeature` | E | Projects list/detail/admin + tasks; FMK-assisted create |
+| `InfoPages` | F | About / Contact / Privacy surfaces over DynamicUI |
 
 **Not folded here (by design):**
 
 - Tier-6 Qupertino `ServersAPI` — **identical** to QupAPI product `ServersAPI`; use **QupAPI**.
-- TamizlaFeature (Rust linker), InfoPages / DynamicPagesFeature (pin **QupDynamicUI** ≥ 10.1.1), AppIntentsSystem, WebAnalyzerFeature — see [docs/QupFeatures.md](docs/QupFeatures.md).
+- TamizlaFeature (Rust linker), DynamicPagesFeature, AppIntentsSystem, WebAnalyzerFeature — see [docs/QupFeatures.md](docs/QupFeatures.md).
 
 ## Platform and toolchain support
 
@@ -75,6 +77,8 @@ Feature-level notes:
   remote providers via **QupSwiftAISDK** (requires **QupFoundationModelsKit** ≥ 10.1.1).
 - `ProjectsFeature` uses **ProjectsAPI** / **TasksAPI** / **AdminAPI** and optional
   on-device FMK for project-spec assist; needs network + host auth.
+- `InfoPages` embeds DynamicUI hosts for About/Contact; Privacy has macOS/iOS
+  platform branches (`AppKit` / `UIKit`).
 
 ## Installation
 
@@ -83,7 +87,7 @@ Feature-level notes:
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.5.0"),
+    .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.6.0"),
 ],
 targets: [
     .target(
@@ -92,6 +96,7 @@ targets: [
             .product(name: "AIAgentsFeature", package: "QupFeatures"),
             .product(name: "AIFeature", package: "QupFeatures"),
             .product(name: "ProjectsFeature", package: "QupFeatures"),
+            .product(name: "InfoPages", package: "QupFeatures"),
             .product(name: "FoundryUI", package: "QupFeatures"),
             .product(name: "WikiUI", package: "QupFeatures"),
             .product(name: "HostingerUI", package: "QupFeatures"),
@@ -114,7 +119,7 @@ QupFeatures:
 # Config/packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.5.0
+  from: 0.6.0
 ```
 
 Then: `./scripts/use-package-mode.sh local` or `production --resolve`, and
@@ -146,6 +151,13 @@ import ProjectsAPI
 import Networking
 
 // Host injects auth session + Networking client; present project list/detail.
+```
+
+```swift
+import InfoPages
+import DynamicUI
+
+// Present AboutView / ContactView / PrivacyView from the app shell.
 ```
 
 ```swift
