@@ -1,13 +1,13 @@
 # QupFeatures
 
 Umbrella Swift package of Tier-6 feature modules (AI agents setup, scratch pad,
-Mantarlife lab, and more as migration waves land).
+Mantarlife lab, AI providers/inference UI, and more as migration waves land).
 
 [![Swift 6.0](https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white)](https://swift.org)
 [![SwiftPM compatible](https://img.shields.io/badge/SwiftPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
-[![Release](https://img.shields.io/badge/release-v0.3.0-blue.svg)](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.3.0)
+[![Release](https://img.shields.io/badge/release-v0.4.0-blue.svg)](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.4.0)
 [![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20macOS-lightgrey.svg)](#platform-and-toolchain-support)
-[![Dependencies](https://img.shields.io/badge/dependencies-7-blue.svg)](#distribution-model)
+[![Dependencies](https://img.shields.io/badge/dependencies-9-blue.svg)](#distribution-model)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 ## Distribution model
@@ -31,7 +31,9 @@ A remote SwiftPM URL always resolves the **root** manifest.
 | QupFeatureContracts | https://github.com/keyvanarasteh/QupFeatureContracts.git | `11.13.0` | `FeatureContracts` |
 | QupQlineAuth | https://github.com/keyvanarasteh/QupQlineAuth.git | `10.1.0` | `QlineAuth` |
 | QupUX | https://github.com/keyvanarasteh/QupUX.git | `1.1.0` | `LayoutSystem` |
-| QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
+| QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `AIAPI`, `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
+| QupSwiftAISDK | https://github.com/keyvanarasteh/QupSwiftAISDK.git | `10.0.4` | `SwiftAISDK`, providers, AISDK* modules |
+| QupFoundationModelsKit | https://github.com/keyvanarasteh/QupFoundationModelsKit.git | `10.1.1` | `FoundationModelsKit` |
 
 ## Features
 
@@ -44,11 +46,12 @@ A remote SwiftPM URL always resolves the **root** manifest.
 | `WikiUI` | B | Wiki browse / edit surfaces over `WikiAPI` |
 | `HostingerUI` | B | Hostinger domains / DNS / hosting UI over `HostingerProxyAPI` |
 | `iCloudCore` | C | Photos / calendar / reminders feature surfaces |
+| `AIFeature` | D | AI v2 providers / models / credentials / inference / usage UI |
 
 **Not folded here (by design):**
 
 - Tier-6 Qupertino `ServersAPI` — **identical** to QupAPI product `ServersAPI`; use **QupAPI**.
-- TamizlaFeature (Rust linker), InfoPages / DynamicPagesFeature (pin **QupDynamicUI** ≥ 10.1.0), AIFeature / ProjectsFeature (**QupSwiftAISDK** + FoundationModelsKit Step 0 still pending), AppIntentsSystem, WebAnalyzerFeature — see [docs/QupFeatures.md](docs/QupFeatures.md).
+- TamizlaFeature (Rust linker), InfoPages / DynamicPagesFeature (pin **QupDynamicUI** ≥ 10.1.1), ProjectsFeature, AppIntentsSystem, WebAnalyzerFeature — see [docs/QupFeatures.md](docs/QupFeatures.md).
 
 ## Platform and toolchain support
 
@@ -66,7 +69,9 @@ Feature-level notes:
   macOS when integrating those screens on iOS.
 - Auth-aware features inject session keys via the host (`qkit.session.isSignedIn`
   / `cupertino.session.isSignedIn`) — never hard-coded inside this package.
-- Live Coolkit / networking surfaces need network access and host-provided auth.
+- Live Coolkit / networking / AI API surfaces need network access and host-provided auth.
+- `AIFeature` inference uses on-device FoundationModels where available plus
+  remote providers via **QupSwiftAISDK** (requires **QupFoundationModelsKit** ≥ 10.1.1).
 
 ## Installation
 
@@ -75,13 +80,14 @@ Feature-level notes:
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.3.0"),
+    .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.4.0"),
 ],
 targets: [
     .target(
         name: "MyApp",
         dependencies: [
             .product(name: "AIAgentsFeature", package: "QupFeatures"),
+            .product(name: "AIFeature", package: "QupFeatures"),
             .product(name: "FoundryUI", package: "QupFeatures"),
             .product(name: "WikiUI", package: "QupFeatures"),
             .product(name: "HostingerUI", package: "QupFeatures"),
@@ -104,7 +110,7 @@ QupFeatures:
 # Config/packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.3.0
+  from: 0.4.0
 ```
 
 Then: `./scripts/use-package-mode.sh local` or `production --resolve`, and
@@ -121,6 +127,16 @@ import FeatureContracts
 ```
 
 ```swift
+import AIFeature
+import AIAPI
+import Networking
+
+// Host supplies Networking client + auth; present AIRootView for a section.
+let api = AIAPI(client: client)
+let state = AIState(api: api)
+```
+
+```swift
 import ScratchFeature
 import LayoutSystem
 ```
@@ -134,6 +150,8 @@ import QlineAuth
 
 - Feature modules may call remote APIs or device tooling; credentials and
   session state stay in **QupQlineAuth** / host configuration.
+- `AIFeature` may reveal credential secrets **transiently** in UI (reveal/copy);
+  never persist plaintext secrets in this package.
 - Do not embed production tokens or private host paths in this package.
 - Crash reporting belongs in **QupCore** (`CrashReporter` / breadcrumbs), not a
   separate CrashReporting package.
@@ -143,13 +161,17 @@ import QlineAuth
 - Resolve with HTTPS clone URLs only (no `git@` SSH).
 - Production archives must pin **tags** (`from:`), never `path:` or `branch:`.
 - Prefer building the root package; do not rebuild absent XCFrameworks.
+- Pin **QupFoundationModelsKit** ≥ **10.1.1** (v10.1.0 Info.plist referenced
+  missing dSYMs and broke consumers).
 
 ## Build and test commands
 
 ```bash
 cd /Volumes/Store/DevOps/Qkit-packages/QupFeatures
 swift build
-swift test
+# swift test may fail loading binary XCFramework deps under SwiftPM rpath;
+# swift build is the required release gate.
+swift build --product AIFeature
 ```
 
 ## Repository layout
@@ -169,14 +191,14 @@ QupFeatures/
 
 - [docs/QupFeatures.md](docs/QupFeatures.md) — architecture, repoint map, waves
 - Org standards: sibling monorepo `AGENTS.md` / Qkit `Docs/Standards/Packages.md`
-- Migration plan: `MIGRATION-ORDERING.md` step 7
+- Migration plan: `MIGRATION-ORDERING.md` step R1+
 
 ## Contributing guidance
 
 1. Edit sources under `QupFeaturesSource/Sources/<Product>/`.
 2. Keep dependency URLs HTTPS and floors at latest published tags.
 3. Do not add app-shell (`@main`, Root, Tray) code here.
-4. Run `swift test` and org `packages.py` before release tags.
+4. Run `swift build` (and org `packages.py` when available) before release tags.
 5. Tag with annotated SemVer (`git tag -a vX.Y.Z`).
 
 ## License

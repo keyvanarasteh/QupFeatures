@@ -1,9 +1,9 @@
 # QupFeatures — architecture and migration overview
 
 **Repository:** <https://github.com/keyvanarasteh/QupFeatures>  
-**Current release:** [v0.3.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.3.0)  
+**Current release:** [v0.4.0](https://github.com/keyvanarasteh/QupFeatures/releases/tag/v0.4.0)  
 **Distribution:** source-only multi-product Swift package (no XCFramework)  
-**Last verification:** 2026-07-31
+**Last verification:** 2026-07-31 (`swift build --product AIFeature` green)
 
 ## Purpose
 
@@ -38,7 +38,9 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | QupFeatureContracts | https://github.com/keyvanarasteh/QupFeatureContracts.git | `11.13.0` | `FeatureContracts` |
 | QupQlineAuth | https://github.com/keyvanarasteh/QupQlineAuth.git | `10.1.0` | `QlineAuth` |
 | QupUX | https://github.com/keyvanarasteh/QupUX.git | `1.1.0` | `LayoutSystem` |
-| QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
+| QupAPI | https://github.com/keyvanarasteh/QupAPI.git | `1.0.1` | `AIAPI`, `FoundryAPI`, `WikiAPI`, `HostingerProxyAPI` |
+| QupSwiftAISDK | https://github.com/keyvanarasteh/QupSwiftAISDK.git | `10.0.4` | `SwiftAISDK`, `AISDKProvider`, providers, utils |
+| QupFoundationModelsKit | https://github.com/keyvanarasteh/QupFoundationModelsKit.git | `10.1.1` | `FoundationModelsKit` |
 
 **Repoint map (old → new):**
 
@@ -49,6 +51,8 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | `QupFoundryAPI` | **QupAPI** product `FoundryAPI` |
 | `QupWikiAPI` / path `WikiAPI` | **QupAPI** product `WikiAPI` |
 | path `HostingerProxyAPI` | **QupAPI** product `HostingerProxyAPI` |
+| `QupAIAPI` / SSH AIAPI | **QupAPI** product `AIAPI` |
+| SSH `QupSwiftAISDK` / `QupFoundationModelsKit` | HTTPS tags ≥ 10.0.4 / **10.1.1** |
 | path / SSH `NavigationSystem` on HostingerUI | **Dropped** (unused in sources) |
 | SSH `git@github.com:…` | HTTPS |
 | Stale `from: "10.0.0"` floors | Latest published tags |
@@ -63,13 +67,31 @@ links, host bootstrap) stay in **Qkit** or Cupertino apps.
 | `ScratchFeature` | `ScratchFeature` | FeatureContracts, DesignSystem, LayoutSystem (QupUX) |
 | `MantarlifeFeature` | `MantarlifeFeature` | FeatureContracts, DesignSystem, QlineAuth (+ HTML resources) |
 
-### Wave B (v0.3.0)
+### Wave B (v0.2.0)
 
 | Module | Former repo | Depends on |
 |---|---|---|
 | `FoundryUI` | `FoundryUI` | FeatureContracts, DesignSystem, Networking, FoundryAPI (QupAPI) |
 | `WikiUI` | `WikiUI` | WikiAPI (QupAPI), DesignSystem, QupCore, Networking |
 | `HostingerUI` | `HostingerUI` | FeatureContracts, DesignSystem, Networking, HostingerProxyAPI (QupAPI) |
+
+### Wave C (v0.3.0)
+
+| Module | Former repo | Depends on |
+|---|---|---|
+| `iCloudCore` | `iCloudCore` | QupCore, DesignSystem, FeatureContracts |
+
+### Wave D (v0.4.0)
+
+| Module | Former repo | Depends on |
+|---|---|---|
+| `AIFeature` | `QupAIFeature` / `SWIFT/Qupertino/AIFeature` | FeatureContracts, Networking, **AIAPI** (QupAPI), SwiftAISDK product graph, FoundationModelsKit ≥ **10.1.1** |
+
+`AIFeature` surfaces Overview, Providers, Models, Credentials, Inference, and
+Usage (`AISection`) over `AIAPI`. Inference clients use on-device
+FoundationModels via `FoundationModelsKit` and remote providers via
+`SwiftAISDK` / provider modules. DesignSystem and QlineAuth were listed on the
+legacy standalone manifest but are **not** imported by current sources.
 
 ### Tier-6 ServersAPI — not a QupFeatures product
 
@@ -86,10 +108,18 @@ collided on `import ServersAPI`.
 | Module | Gate |
 |---|---|
 | `TamizlaFeature` | Local Rust `qrust-scan` linker path + `CQrustScanShim` |
-| `InfoPages` | Needs migrated `DynamicUI` |
-| `AIFeature`, `ProjectsFeature` | `SwiftAISDK` / `FoundationModelsKit` + QupAPI products |
-| `DynamicPagesFeature`, `iCloudCore`, … | Heavy monorepo `path:` deps must be rewritten first |
+| `InfoPages` | Needs migrated `QupDynamicUI` ≥ 10.1.1 |
+| `ProjectsFeature` | QupAPI products + SwiftAISDK as required |
+| `DynamicPagesFeature` | Heavy monorepo `path:` deps → rewrite to HTTPS Qup* |
 | `AppIntentsSystem`, `WebAnalyzerFeature` | Structural mismatch — stay standalone |
+
+## Prep standalones (supporting Wave D)
+
+| Package | Location | Tag |
+|---|---|---|
+| QupDynamicUI | `Qkit-packages/QupDynamicUI` | **v10.1.1** |
+| QupSwiftAISDK | `Qkit-packages/QupSwiftAISDK` | **v10.0.4** |
+| QupFoundationModelsKit | `Qkit-packages/QupFoundationModelsKit` | **v10.1.1** (dSYM path fix) |
 
 ## Host wiring
 
@@ -101,7 +131,7 @@ QupFeatures:
 # packages.production.yml
 QupFeatures:
   url: https://github.com/keyvanarasteh/QupFeatures.git
-  from: 0.3.0
+  from: 0.4.0
 ```
 
 Then: `use-package-mode.sh production --resolve` and `setup.py validate production`.
@@ -114,26 +144,16 @@ Then: `use-package-mode.sh production --resolve` and `setup.py validate producti
 | `ScratchFeatureTests` | Scratch surface + layout types |
 | `MantarlifeFeatureTests` | FeatureContracts registration shape |
 | `FoundryUITests` | Foundry UI smoke |
+| `iCloudCoreTests` | iCloud feature smoke |
+| `AIFeatureTests` | Section surface, partial load, credential reveal |
 
 `swift test` may fail to load **binary** XCFramework deps under SwiftPM’s testing
 helper (rpath); `swift build` is the required gate for this umbrella.
 
 ## Known limitations
 
-- Wave A + B only — not the full Tier-6 set.
+- Waves A–D only — not the full Tier-6 set.
 - Some AI agent setup UI is AppKit-oriented (macOS).
 - Mantarlife embeds lab HTML as package resources.
 - No binary distribution / library evolution required for source umbrella.
-
-### Wave C (v0.3.0)
-
-| Module | Former repo | Depends on |
-|---|---|---|
-| `iCloudCore` | `iCloudCore` | QupCore, DesignSystem, FeatureContracts |
-
-**Prep standalones (same session):**
-
-| Package | Location | Tag / tip |
-|---|---|---|
-| QupDynamicUI | `Qkit-packages/QupDynamicUI` | **v10.1.0** (HTTPS + QupUX) |
-| QupSwiftAISDK | `Qkit-packages/QupSwiftAISDK` | origin tip (binary multi-product, already HTTPS) |
+- `AIFeature` pulls binary XCFrameworks (SwiftAISDK + FMK); first resolve is large.

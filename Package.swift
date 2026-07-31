@@ -4,9 +4,9 @@ import PackageDescription
 /// Umbrella source package for Tier-6 feature modules.
 ///
 /// ```swift
-/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.3.0"),
+/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.4.0"),
 /// // products: AIAgentsFeature, ScratchFeature, MantarlifeFeature,
-/// //           FoundryUI, WikiUI, HostingerUI, iCloudCore, ...
+/// //           FoundryUI, WikiUI, HostingerUI, iCloudCore, AIFeature, ...
 /// ```
 ///
 /// External (latest published tags):
@@ -16,11 +16,14 @@ import PackageDescription
 /// - [QupFeatureContracts](https://github.com/keyvanarasteh/QupFeatureContracts) ≥ 11.13.0
 /// - [QupQlineAuth](https://github.com/keyvanarasteh/QupQlineAuth) ≥ 10.1.0
 /// - [QupUX](https://github.com/keyvanarasteh/QupUX) ≥ 1.1.0 (LayoutSystem)
-/// - [QupAPI](https://github.com/keyvanarasteh/QupAPI) ≥ 1.0.1 (FoundryAPI, WikiAPI, HostingerProxyAPI, …)
+/// - [QupAPI](https://github.com/keyvanarasteh/QupAPI) ≥ 1.0.1 (AIAPI, FoundryAPI, WikiAPI, HostingerProxyAPI, …)
+/// - [QupSwiftAISDK](https://github.com/keyvanarasteh/QupSwiftAISDK) ≥ 10.0.4
+/// - [QupFoundationModelsKit](https://github.com/keyvanarasteh/QupFoundationModelsKit) ≥ 10.1.0
 ///
 /// Wave B note: Tier-6 `ServersAPI` under Qupertino was a **duplicate** of
 /// QupAPI product `ServersAPI` (identical sources) — not folded here; use QupAPI.
-/// Wave C prep: DynamicUI → QupDynamicUI v10.1.0; SwiftAISDK → QupSwiftAISDK (standalone).
+/// Wave C: iCloudCore; prep DynamicUI / SwiftAISDK / FMK standalones.
+/// Wave D: AIFeature (QupAPI AIAPI + SwiftAISDK + FoundationModelsKit).
 
 let package = Package(
     name: "QupFeatures",
@@ -33,6 +36,7 @@ let package = Package(
         .library(name: "WikiUI", targets: ["WikiUI"]),
         .library(name: "HostingerUI", targets: ["HostingerUI"]),
         .library(name: "iCloudCore", targets: ["iCloudCore"]),
+        .library(name: "AIFeature", targets: ["AIFeature"]),
     ],
     dependencies: [
         .package(url: "https://github.com/keyvanarasteh/QupCore.git", from: "11.12.0"),
@@ -42,6 +46,8 @@ let package = Package(
         .package(url: "https://github.com/keyvanarasteh/QupQlineAuth.git", from: "10.1.0"),
         .package(url: "https://github.com/keyvanarasteh/QupUX.git", from: "1.1.0"),
         .package(url: "https://github.com/keyvanarasteh/QupAPI.git", from: "1.0.1"),
+        .package(url: "https://github.com/keyvanarasteh/QupSwiftAISDK.git", from: "10.0.4"),
+        .package(url: "https://github.com/keyvanarasteh/QupFoundationModelsKit.git", from: "10.1.1"),
     ],
     targets: [
         .target(
@@ -160,6 +166,40 @@ let package = Package(
             name: "iCloudCoreTests",
             dependencies: ["iCloudCore"],
             path: "QupFeaturesSource/Tests/iCloudCoreTests"
+        ),
+
+        // MARK: Wave D (AIFeature)
+
+        .target(
+            name: "AIFeature",
+            dependencies: [
+                .product(name: "FeatureContracts", package: "QupFeatureContracts"),
+                .product(name: "Networking", package: "QupNetworking"),
+                .product(name: "AIAPI", package: "QupAPI"),
+                // SwiftAISDK product graph (binary interfaces import sibling modules)
+                .product(name: "SwiftAISDK", package: "QupSwiftAISDK"),
+                .product(name: "AISDKProvider", package: "QupSwiftAISDK"),
+                .product(name: "AISDKProviderUtils", package: "QupSwiftAISDK"),
+                .product(name: "AISDKJSONSchema", package: "QupSwiftAISDK"),
+                .product(name: "EventSourceParser", package: "QupSwiftAISDK"),
+                .product(name: "AISDKZodAdapter", package: "QupSwiftAISDK"),
+                .product(name: "OpenAICompatibleProvider", package: "QupSwiftAISDK"),
+                .product(name: "AnthropicProvider", package: "QupSwiftAISDK"),
+                .product(name: "GoogleProvider", package: "QupSwiftAISDK"),
+                .product(name: "GatewayProvider", package: "QupSwiftAISDK"),
+                .product(name: "FoundationModelsKit", package: "QupFoundationModelsKit"),
+            ],
+            path: "QupFeaturesSource/Sources/AIFeature"
+        ),
+        .testTarget(
+            name: "AIFeatureTests",
+            dependencies: [
+                "AIFeature",
+                .product(name: "AIAPI", package: "QupAPI"),
+                .product(name: "Networking", package: "QupNetworking"),
+                .product(name: "FeatureContracts", package: "QupFeatureContracts"),
+            ],
+            path: "QupFeaturesSource/Tests/AIFeatureTests"
         ),
     ]
 )

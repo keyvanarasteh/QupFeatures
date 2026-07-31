@@ -1,5 +1,5 @@
 {
-  "originHash" : "2ffd62ccac98b01a6693608c71f83135b40eea67aa2af3f3b2c88c8867485756",
+  "originHash" : "d04ed1c055b6dba3d60b0262e80d7868ddf87963db37e3e4f608dd6973a2d07d",
   "pins" : [
     {
       "identity" : "qupapi",
@@ -38,6 +38,15 @@
       }
     },
     {
+      "identity" : "qupfoundationmodelskit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupFoundationModelsKit.git",
+      "state" : {
+        "revision" : "2119eed8cbb6eaf4918164d782bdaab7ce0d577a",
+        "version" : "10.1.1"
+      }
+    },
+    {
       "identity" : "qupnetworking",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupNetworking.git",
@@ -53,6 +62,15 @@
       "state" : {
         "revision" : "897218b9a872c7fdbb5618abe7f6de9db9e55505",
         "version" : "10.1.0"
+      }
+    },
+    {
+      "identity" : "qupswiftaisdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupSwiftAISDK.git",
+      "state" : {
+        "revision" : "39e6377e61de372bd2c36209fa7188f2574863bb",
+        "version" : "10.0.4"
       }
     },
     {
