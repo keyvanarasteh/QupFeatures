@@ -1,0 +1,60 @@
+{
+  "originHash" : "e9c6144798e352f23741b40eb02e00f1103e2084ce72c22866c7849ed294b594",
+  "pins" : [
+    {
+      "identity" : "qupcore",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupCore.git",
+      "state" : {
+        "revision" : "f939a7835afc447ce157b365e4f93570527b88b6",
+        "version" : "11.12.0"
+      }
+    },
+    {
+      "identity" : "qupdesignsystem",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupDesignSystem.git",
+      "state" : {
+        "revision" : "a3268f104989937e728705befabd45059d4502a4",
+        "version" : "10.1.0"
+      }
+    },
+    {
+      "identity" : "qupfeaturecontracts",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupFeatureContracts.git",
+      "state" : {
+        "revision" : "b8c42f40a0410c61eb68653222f886b6ba6c44fb",
+        "version" : "11.13.0"
+      }
+    },
+    {
+      "identity" : "qupnetworking",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupNetworking.git",
+      "state" : {
+        "revision" : "63847b819fae3505f60309c07479e23cb74f5c06",
+        "version" : "10.1.0"
+      }
+    },
+    {
+      "identity" : "qupqlineauth",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupQlineAuth.git",
+      "state" : {
+        "revision" : "897218b9a872c7fdbb5618abe7f6de9db9e55505",
+        "version" : "10.1.0"
+      }
+    },
+    {
+      "identity" : "qupux",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keyvanarasteh/QupUX.git",
+      "state" : {
+        "revision" : "6a7409b1c24063118e3ddc32fe6757a3bcce7b50",
+        "version" : "1.1.0"
+      }
+    }
+  ],
+  "version" : 3
+}
