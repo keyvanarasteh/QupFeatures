@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<title>MantarLife · Ar-Ge Labratuvarı — Pro 3D</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #070b10;
+    --panel: rgba(12, 18, 28, 0.88);
+    --panel-solid: #0c121c;
+    --border: rgba(100, 140, 180, 0.22);
+    --border-strong: rgba(120, 170, 220, 0.35);
+    --text: #e8eef6;
+    --muted: #7a8fa8;
+    --dim: #4a5d72;
+    --accent: #3dd6c6;
+    --accent-dim: rgba(61, 214, 198, 0.12);
+    --blue: #5b9fff;
+    --orange: #ff8b5c;
+    --amber: #f0b429;
+    --violet: #a78bfa;
+    --cyan: #38bdf8;
+    --rose: #fb7185;
+    --success: #34d399;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+    --r: 12px;
+    --shadow: 0 12px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.03) inset;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: var(--font);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app { position: relative; width: 100vw; height: 100vh; }
+  canvas { display: block; }
+
+  /* —— Top bar —— */
+  #topbar {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+    height: 52px; padding: 0 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(180deg, rgba(7,11,16,0.95) 0%, rgba(7,11,16,0.55) 70%, transparent 100%);
+    pointer-events: none;
+  }
+  #topbar .brand { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
+  #topbar .logo {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, #1a3a35 0%, #0d2824 100%);
+    border: 1px solid rgba(61,214,198,0.35);
+    display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; color: var(--accent);
+  }
+  #topbar h1 {
+    font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #topbar h1 .badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--accent);
+    background: var(--accent-dim); border: 1px solid rgba(61,214,198,0.25);
+    padding: 2px 7px; border-radius: 999px;
+  }
+  #topbar .meta {
+    font-size: 11.5px; color: var(--muted);
+    font-family: var(--mono); letter-spacing: 0.02em;
+  }
+  #topbar .status {
+    display: flex; align-items: center; gap: 14px;
+    pointer-events: auto; font-size: 11px; color: var(--muted);
+  }
+  #topbar .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  }
+  #topbar .dot-live {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--success); box-shadow: 0 0 8px var(--success);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+
+  /* —— Panels —— */
+  .panel {
+    position: absolute; z-index: 8;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    box-shadow: var(--shadow);
+  }
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .panel-head h2 {
+    font-size: 10px; font-weight: 650; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .panel-body { padding: 12px 14px 14px; }
+
+  /* —— Left: Specs —— */
+  #specs {
+    top: 64px; left: 14px; width: 248px;
+    max-height: calc(100vh - 140px); overflow-y: auto;
+  }
+  #specs::-webkit-scrollbar { width: 4px; }
+  #specs::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
+
+  .spec-grid { display: grid; gap: 6px; margin-bottom: 14px; }
+  .spec-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 12px; line-height: 1.4;
+  }
+  .spec-row .k { color: var(--muted); }
+  .spec-row .v { color: var(--text); font-family: var(--mono); font-size: 11.5px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 650; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--dim);
+    margin: 12px 0 8px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  .swatch-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; padding: 4px 0; color: var(--text);
+  }
+  .swatch {
+    width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset;
+  }
+  .swatch.round { border-radius: 50%; }
+
+  .dev-list { display: flex; flex-direction: column; gap: 2px; }
+  .dev-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 8px;
+    cursor: pointer; font-size: 12px;
+    border: 1px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .dev-item:hover { background: rgba(255,255,255,0.04); border-color: var(--border); }
+  .dev-item.active {
+    background: var(--accent-dim);
+    border-color: rgba(61,214,198,0.3);
+  }
+  .dev-item .name { flex: 1; }
+  .dev-item .tag {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--muted);
+    font-family: var(--mono);
+  }
+  .dev-item .warn-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--warn); box-shadow: 0 0 6px var(--warn);
+  }
+
+  /* —— Right: Info —— */
+  #info {
+    top: 64px; right: 14px; width: 280px;
+    display: none;
+  }
+  #info.visible { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+  }
+  #info .close {
+    width: 24px; height: 24px; border-radius: 6px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); cursor: pointer; font-size: 14px;
+    display: grid; place-items: center;
+  }
+  #info .close:hover { color: var(--text); border-color: var(--border-strong); }
+  #info .title {
+    font-size: 16px; font-weight: 650; letter-spacing: -0.02em;
+    margin-bottom: 2px;
+  }
+  #info .role {
+    font-size: 11.5px; color: var(--muted); margin-bottom: 12px; line-height: 1.45;
+  }
+  #info table { width: 100%; border-collapse: collapse; }
+  #info td {
+    padding: 5px 0; font-size: 12px; vertical-align: top;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  #info tr:last-child td { border-bottom: none; }
+  #info td.k { color: var(--muted); width: 38%; padding-right: 8px; }
+  #info td.v { color: var(--text); font-family: var(--mono); font-size: 11px; word-break: break-all; }
+  #info td.v.warn { color: var(--warn); }
+
+  /* —— Bottom controls —— */
+  #controls {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 8; display: flex; align-items: center; gap: 4px;
+    padding: 6px 8px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow);
+  }
+  #controls .group {
+    display: flex; align-items: center; gap: 2px;
+    padding: 0 4px;
+  }
+  #controls .sep {
+    width: 1px; height: 22px; background: var(--border); margin: 0 4px;
+  }
+  #controls button, #controls label.chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 30px; padding: 0 11px;
+    border-radius: 999px; border: 1px solid transparent;
+    background: transparent; color: var(--muted);
+    font-size: 11.5px; font-family: var(--font); font-weight: 500;
+    cursor: pointer; user-select: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  #controls button:hover, #controls label.chip:hover {
+    color: var(--text); background: rgba(255,255,255,0.05);
+  }
+  #controls button.active, #controls label.chip:has(input:checked) {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-color: rgba(61,214,198,0.25);
+  }
+  #controls label.chip input { display: none; }
+  #controls input[type=range] {
+    width: 64px; height: 3px; accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  #hint {
+    position: absolute; bottom: 20px; right: 16px; z-index: 7;
+    font-size: 10.5px; color: var(--dim);
+    font-family: var(--mono);
+  }
+
+  #loading {
+    position: absolute; inset: 0; z-index: 30;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    background: var(--bg);
+  }
+  #loading .spinner {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading span { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+
+  /* —— Minimap —— */
+  #minimap {
+    bottom: 68px; right: 14px; width: 140px; height: 90px;
+    padding: 8px; overflow: hidden;
+  }
+  #minimap canvas { width: 100%; height: 100%; border-radius: 6px; background: #0a1018; }
+  #minimap .label {
+    position: absolute; top: 6px; left: 10px;
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--dim); pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="loading">
+    <div class="spinner"></div>
+    <span>Ar-Ge sahnesi hazırlanıyor…</span>
+  </div>
+
+  <div id="topbar">
+    <div class="brand">
+      <div class="logo">M</div>
+      <div>
+        <h1>MantarLife Labratuvarı <span class="badge">Pro</span></h1>
+        <div class="meta">Ar-Ge · Gebze · 12.0 × 6.0 × 2.4 m</div>
+      </div>
+    </div>
+    <div class="status">
+      <span class="pill"><span class="dot-live"></span> Dijital ikiz</span>
+      <span class="pill">5 raf × 5 kat</span>
+      <span class="pill">6 IoT nokta</span>
+    </div>
+  </div>
+
+  <div id="specs" class="panel">
+    <div class="panel-head"><h2>Spesifikasyon</h2></div>
+    <div class="panel-body">
+      <div class="section-label">Bina</div>
+      <div class="spec-grid">
+        <div class="spec-row"><span class="k">Uzunluk</span><span class="v">12.00 m</span></div>
+        <div class="spec-row"><span class="k">Genişlik</span><span class="v">6.00 m</span></div>
+        <div class="spec-row"><span class="k">Çatı</span><span class="v">2.40 → 2.20 m</span></div>
+        <div class="spec-row"><span class="k">Kabuk</span><span class="v">Sandviç panel</span></div>
+        <div class="spec-row"><span class="k">Zemin</span><span class="v">Epoksi beton</span></div>
+      </div>
+
+      <div class="section-label">Raf sistemi</div>
+      <div class="spec-grid">
+        <div class="spec-row"><span class="k">Sıra</span><span class="v">5</span></div>
+        <div class="spec-row"><span class="k">Kat / sıra</span><span class="v">5</span></div>
+        <div class="spec-row"><span class="k">İlk kat</span><span class="v">25 cm</span></div>
+        <div class="spec-row"><span class="k">Kat aralığı</span><span class="v">45 cm</span></div>
+        <div class="spec-row"><span class="k">Yüzey</span><span class="v">2× drenaj rayı</span></div>
+      </div>
+
+      <div class="section-label">Klima / havalandırma (saha)</div>
+      <div class="spec-grid">
+        <div class="spec-row"><span class="k">Fan</span><span class="v">2× Ayas YSA ~Ø490</span></div>
+        <div class="spec-row"><span class="k">Petek</span><span class="v">2× 2.0×1.0×0.1 m</span></div>
+        <div class="spec-row"><span class="k">Tip</span><span class="v">Ped-fan evaporatif</span></div>
+        <div class="spec-row"><span class="k">Ultrasonik</span><span class="v">Duvar kutu nem</span></div>
+      </div>
+
+      <div class="section-label">Malzeme paleti</div>
+      <div class="swatch-row"><span class="swatch" style="background:#1a2330"></span> Dikey dikme · çelik</div>
+      <div class="swatch-row"><span class="swatch" style="background:#2d8a6e"></span> Yatay ray · yeşil kaplama</div>
+      <div class="swatch-row"><span class="swatch" style="background:#3d4f45"></span> Enine destek</div>
+      <div class="swatch-row"><span class="swatch" style="background:#c8d4c4"></span> Duvar · sandviç panel</div>
+      <div class="swatch-row"><span class="swatch" style="background:#0a1210"></span> Zemin · ıslak epoksi</div>
+
+      <div class="section-label">IoT envanteri</div>
+      <div class="dev-list" id="deviceList"></div>
+    </div>
+  </div>
+
+  <div id="info" class="panel">
+    <div class="panel-head">
+      <h2>Cihaz detayı</h2>
+      <button class="close" id="infoClose" type="button" aria-label="Kapat">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div class="title" id="infoName"></div>
+      <div class="role" id="infoRole"></div>
+      <table id="infoTable"></table>
+    </div>
+  </div>
+
+  <div id="minimap" class="panel">
+    <span class="label">Plan</span>
+    <canvas id="minimapCanvas" width="248" height="148"></canvas>
+  </div>
+
+  <div id="controls">
+    <div class="group">
+      <button type="button" data-view="overview" class="active">Genel</button>
+      <button type="button" data-view="aisle">Koridor</button>
+      <button type="button" data-view="top">Üst</button>
+      <button type="button" data-view="end">Kısa duvar</button>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+      <label class="chip"><input type="checkbox" id="toggleRoof" /> Çatı gizle</label>
+      <label class="chip"><input type="checkbox" id="toggleWalls" checked /> Duvar</label>
+      <label class="chip"><input type="checkbox" id="toggleBlocks" checked /> Blok</label>
+      <label class="chip"><input type="checkbox" id="toggleGrid" checked /> Izgara</label>
+      <label class="chip"><input type="checkbox" id="toggleLabels" checked /> Etiket</label>
+      <label class="chip"><input type="checkbox" id="toggleHvac" checked /> Klima</label>
+      <label class="chip"><input type="checkbox" id="toggleFog" /> Sis</label>
+      <input type="range" id="fogRange" min="0" max="100" value="50" title="Sis yoğunluğu" />
+      <label class="chip"><input type="checkbox" id="toggleRotate" /> Döndür</label>
+    </div>
+  </div>
+
+  <div id="hint">sürükle · tekerlek · sağ tık kaydır · işaretçi tıkla</div>
+</div>
+
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // ─── Data (lab-core.md + iot.md) ─────────────────────────────────
+  var ROOM = { length: 12, width: 6, roofNear: 2.40, roofFar: 2.20 };
+  var SHELF = {
+    rows: 5, tiers: 5, firstHeight: 0.25, gap: 0.45,
+    depth: 0.7, marginZ: 0,
+    aisles: [0.625, 0.625, 0.625, 0.625]
+  };
+
+  // Per-row accent tints for professional row identification
+  var ROW_TINTS = [
+    0x2d8a6e, // R1 — primary green
+    0x2a7f72, // R2
+    0x28866a, // R3
+    0x2d8a6e, // R4
+    0x2a7f72  // R5
+  ];
+
+  // Physical HVAC loads (Gökçe 24.07.2026 / iot.md)
+  // Fan diameter: YSA-400 catalog outer ØA≈490 mm until exact model confirmed
+  var HVAC = {
+    fan: {
+      diameter: 0.49,
+      depth: 0.22,
+      blades: 6,
+      centerY: 1.55,
+      wallX: 0.12,
+      centersZ: [1.15, 2.30]
+    },
+    petek: {
+      length: 2.0,
+      height: 1.0,
+      thickness: 0.10,
+      bottomY: 0.35,
+      wallX: 11.90,
+      centersZ: [1.50, 4.50]
+    },
+    ultrasonic: {
+      size: [0.48, 0.40, 0.42],
+      pos: [8.0, 1.20, 0.28]
+    }
+  };
+
+  var devices = [
+    {
+      name: "Fan 1", role: "Ayas YSA aspiratör — SONOFF THR320D (ortak röle)",
+      pos: [HVAC.fan.wallX + 0.28, HVAC.fan.centerY, HVAC.fan.centersZ[0]],
+      color: 0x38bdf8, kind: "FAN",
+      fields: [
+        ["Yük", "Ayas YSA yuvarlak kasalı aspiratör"],
+        ["Ölçü (vars.)", "Ø≈490 mm · YSA-400 ailesi"],
+        ["Adet / duvar", "2 (kısa duvar x=0)"],
+        ["Cihaz ID", "100296b50f"],
+        ["MAC", "68:FE:71:3A:5B:0C"],
+        ["Firmware", "SN-ESP32D0-THR3-01 v1.3.0"],
+        ["Sensör", "⚠ Prob takılı değil"],
+        ["Döngü", "3 dk AÇIK / 15 dk KAPALI"],
+        ["Not", "2 fan aynı röleden"]
+      ],
+      warn: true
+    },
+    {
+      name: "Fan 2", role: "Ayas YSA aspiratör — SONOFF THR320D (ortak röle)",
+      pos: [HVAC.fan.wallX + 0.28, HVAC.fan.centerY, HVAC.fan.centersZ[1]],
+      color: 0x38bdf8, kind: "FAN",
+      fields: [
+        ["Yük", "Ayas YSA yuvarlak kasalı aspiratör"],
+        ["Ölçü (vars.)", "Ø≈490 mm · YSA-400 ailesi"],
+        ["Adet / duvar", "2 (kısa duvar x=0)"],
+        ["Cihaz ID", "100296b50f"],
+        ["MAC", "68:FE:71:3A:5B:0C"],
+        ["Firmware", "SN-ESP32D0-THR3-01 v1.3.0"],
+        ["Sensör", "⚠ Prob takılı değil"],
+        ["Döngü", "3 dk AÇIK / 15 dk KAPALI"],
+        ["Not", "2 fan aynı röleden"]
+      ],
+      warn: true
+    },
+    {
+      name: "Petek 1", role: "Evaporatif soğutucu petek — SONOFF THR320D",
+      pos: [HVAC.petek.wallX - 0.25, HVAC.petek.bottomY + HVAC.petek.height / 2, HVAC.petek.centersZ[0]],
+      color: 0x2dd4a8, kind: "PAD",
+      fields: [
+        ["Yük", "Selülozik cooling pad (sulu)"],
+        ["Ölçü", "2.0 m × 1.0 m × ~0.10 m"],
+        ["Adet", "2 (kısa duvar x=12)"],
+        ["Görev", "Soğutma + nem — ısıtma değil"],
+        ["Firmware", "SN-ESP32D0-THR3-01 v1.3.0"],
+        ["Sensör", "✓ 22.3°C / %99.9 RH"],
+        ["Kayıt", "20.6 – 26.6°C"],
+        ["Not", "2 petek aynı röleden"]
+      ]
+    },
+    {
+      name: "Petek 2", role: "Evaporatif soğutucu petek — SONOFF THR320D",
+      pos: [HVAC.petek.wallX - 0.25, HVAC.petek.bottomY + HVAC.petek.height / 2, HVAC.petek.centersZ[1]],
+      color: 0x2dd4a8, kind: "PAD",
+      fields: [
+        ["Yük", "Selülozik cooling pad (sulu)"],
+        ["Ölçü", "2.0 m × 1.0 m × ~0.10 m"],
+        ["Adet", "2 (kısa duvar x=12)"],
+        ["Görev", "Soğutma + nem — ısıtma değil"],
+        ["Firmware", "SN-ESP32D0-THR3-01 v1.3.0"],
+        ["Sensör", "✓ 22.3°C / %99.9 RH"],
+        ["Kayıt", "20.6 – 26.6°C"],
+        ["Not", "2 petek aynı röleden"]
+      ]
+    },
+    {
+      name: "Sisleme", role: "Ana nemlendirme (2 kanal) — SONOFF DUALR3",
+      pos: [4.0, 2.15, 3.0], color: 0x5b9fff, kind: "MIST",
+      fields: [
+        ["Cihaz ID", "100275a48c"],
+        ["MAC", "20:43:A8:C0:56:30"],
+        ["Firmware", "E32-2SW-P0 v1.6.1"],
+        ["Kanallar", "Sisleme 1 · Sisleme 2"],
+        ["API", "/coolkit/devices/switches"]
+      ]
+    },
+    {
+      name: "Ultrasonik", role: "Ultrasonik nem cihazı — SONOFF DUALR3",
+      pos: [
+        HVAC.ultrasonic.pos[0],
+        HVAC.ultrasonic.pos[1] + HVAC.ultrasonic.size[1] / 2 + 0.15,
+        HVAC.ultrasonic.pos[2] + 0.35
+      ],
+      color: 0xa78bfa, kind: "FOG",
+      fields: [
+        ["Yük", "Duvar montajlı ultrasonik nem"],
+        ["Gövde", "~48×40×42 cm (saha tahmini)"],
+        ["Cihaz ID", "100275a49e"],
+        ["MAC", "20:43:A8:C1:B1:E8"],
+        ["Firmware", "E32-2SW-P0 v1.6.1"],
+        ["Döngü", "5 dk AÇIK / 15 dk KAPALI"]
+      ]
+    }
+  ];
+
+  // ─── Scene ──────────────────────────────────────────────────────
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0e14);
+
+  // Interior-only mist state (geometry built after L/W are known)
+  var fogState = { enabled: false, amount: 0.5 };
+  var mistGroup = new THREE.Group();
+  mistGroup.visible = false;
+  mistGroup.name = "interiorMist";
+
+  var camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.08, 200);
+  camera.position.set(15.5, 9.2, 12.8);
+
+  var renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  document.getElementById("app").appendChild(renderer.domElement);
+
+  var controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(ROOM.length / 2, 1.05, ROOM.width / 2);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.07;
+  controls.minDistance = 0.5;
+  controls.maxDistance = 42;
+  controls.maxPolarAngle = Math.PI * 0.495;
+  controls.update();
+
+  // ─── Lighting (cool R&D lab) ────────────────────────────────────
+  scene.add(new THREE.AmbientLight(0xb8c8d8, 0.42));
+  scene.add(new THREE.HemisphereLight(0xd0e0f0, 0x1a2228, 0.35));
+
+  var key = new THREE.DirectionalLight(0xfff5e8, 0.55);
+  key.position.set(10, 18, 4);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.left = -16; key.shadow.camera.right = 16;
+  key.shadow.camera.top = 14; key.shadow.camera.bottom = -14;
+  key.shadow.camera.far = 50;
+  key.shadow.bias = -0.00025;
+  scene.add(key);
+
+  var fill = new THREE.DirectionalLight(0x88aacc, 0.22);
+  fill.position.set(-6, 8, -4);
+  scene.add(fill);
+
+  // Exterior pad
+  var ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(120, 120),
+    new THREE.MeshStandardMaterial({ color: 0x121820, roughness: 0.95, metalness: 0 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.03;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // ─── Helpers ────────────────────────────────────────────────────
+  function quadGeometry(v0, v1, v2, v3) {
+    var geo = new THREE.BufferGeometry();
+    var pos = new Float32Array([
+      v0[0], v0[1], v0[2], v1[0], v1[1], v1[2], v2[0], v2[1], v2[2],
+      v0[0], v0[1], v0[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]
+    ]);
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    geo.computeVertexNormals();
+    geo.setAttribute("uv", new THREE.BufferAttribute(new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]), 2));
+    return geo;
+  }
+
+  function edgeLines(geo, color, opacity) {
+    return new THREE.LineSegments(
+      new THREE.EdgesGeometry(geo, 12),
+      new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity == null ? 0.4 : opacity })
+    );
+  }
+
+  // ─── Building shell ─────────────────────────────────────────────
+  var L = ROOM.length, W = ROOM.width, Hn = ROOM.roofNear, Hf = ROOM.roofFar;
+
+  // Interior-only mist (no THREE.Fog — that would fog the exterior ground too)
+  function makeMistTexture() {
+    var c = document.createElement("canvas");
+    c.width = 128; c.height = 128;
+    var g = c.getContext("2d");
+    var grd = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+    grd.addColorStop(0, "rgba(230,242,248,0.55)");
+    grd.addColorStop(0.45, "rgba(210,228,236,0.22)");
+    grd.addColorStop(1, "rgba(200,220,230,0)");
+    g.fillStyle = grd;
+    g.fillRect(0, 0, 128, 128);
+    var tex = new THREE.CanvasTexture(c);
+    tex.encoding = THREE.sRGBEncoding;
+    return tex;
+  }
+  (function buildInteriorMist() {
+    var mistTex = makeMistTexture();
+    var layerYs = [0.35, 0.75, 1.15, 1.55, 1.9];
+    layerYs.forEach(function (y, li) {
+      var mat = new THREE.MeshBasicMaterial({
+        color: 0xd8e8f0, transparent: true, opacity: 0,
+        depthWrite: false, side: THREE.DoubleSide
+      });
+      var plane = new THREE.Mesh(new THREE.PlaneGeometry(L - 0.2, W - 0.2), mat);
+      plane.rotation.x = -Math.PI / 2;
+      plane.position.set(L / 2, y, W / 2);
+      plane.userData.baseOpacity = 0.04 + li * 0.012;
+      mistGroup.add(plane);
+    });
+    var count = 48;
+    for (var i = 0; i < count; i++) {
+      var spr = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: mistTex, transparent: true, opacity: 0, depthWrite: false
+      }));
+      var sx = 0.9 + Math.random() * 2.4;
+      spr.scale.set(sx, sx * 0.55, 1);
+      spr.position.set(
+        0.35 + Math.random() * (L - 0.7),
+        0.25 + Math.random() * 1.7,
+        0.25 + Math.random() * (W - 0.5)
+      );
+      spr.userData.baseOpacity = 0.12 + Math.random() * 0.22;
+      spr.userData.phase = Math.random() * Math.PI * 2;
+      spr.userData.drift = 0.08 + Math.random() * 0.12;
+      mistGroup.add(spr);
+    }
+  })();
+  function applyFog() {
+    scene.fog = null; // never use global fog
+    mistGroup.visible = fogState.enabled;
+    var t = fogState.amount;
+    mistGroup.children.forEach(function (ch) {
+      var base = ch.userData.baseOpacity != null ? ch.userData.baseOpacity : 0.15;
+      if (ch.material) ch.material.opacity = fogState.enabled ? base * (0.35 + t * 1.35) : 0;
+    });
+  }
+  applyFog();
+  scene.add(mistGroup);
+
+  var shellGroup = new THREE.Group();
+  shellGroup.name = "shell";
+
+  // Floor — dark wet epoxy with subtle grid
+  var floorMat = new THREE.MeshStandardMaterial({
+    color: 0x0c1412, roughness: 0.22, metalness: 0.18
+  });
+  var floorMesh = new THREE.Mesh(quadGeometry([0,0,0],[L,0,0],[L,0,W],[0,0,W]), floorMat);
+  floorMesh.receiveShadow = true;
+  shellGroup.add(floorMesh);
+
+  // Floor grid (1m)
+  var gridGroup = new THREE.Group();
+  var gridMat = new THREE.LineBasicMaterial({ color: 0x1e3a32, transparent: true, opacity: 0.55 });
+  var majorMat = new THREE.LineBasicMaterial({ color: 0x2a5a4c, transparent: true, opacity: 0.7 });
+  for (var gx = 0; gx <= L; gx++) {
+    var gpts = [new THREE.Vector3(gx, 0.004, 0), new THREE.Vector3(gx, 0.004, W)];
+    var ggeo = new THREE.BufferGeometry().setFromPoints(gpts);
+    gridGroup.add(new THREE.Line(ggeo, gx % 2 === 0 ? majorMat : gridMat));
+  }
+  for (var gz = 0; gz <= W; gz++) {
+    var gpts2 = [new THREE.Vector3(0, 0.004, gz), new THREE.Vector3(L, 0.004, gz)];
+    var ggeo2 = new THREE.BufferGeometry().setFromPoints(gpts2);
+    gridGroup.add(new THREE.Line(ggeo2, gz % 2 === 0 ? majorMat : gridMat));
+  }
+  shellGroup.add(gridGroup);
+
+  // Dimension ticks along long wall
+  var dimMat = new THREE.MeshBasicMaterial({ color: 0x3dd6c6, transparent: true, opacity: 0.35 });
+  for (var d = 0; d <= L; d++) {
+    var tick = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.01, 0.08), dimMat);
+    tick.position.set(d, 0.01, -0.06);
+    shellGroup.add(tick);
+  }
+
+  // Sandwich panel walls — slightly translucent professional
+  var wallMat = new THREE.MeshStandardMaterial({
+    color: 0xc5d2c8, roughness: 0.55, metalness: 0.04,
+    transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false
+  });
+  var wallGroup = new THREE.Group();
+  var walls = [
+    [[0,0,0],[L,0,0],[L,Hn,0],[0,Hn,0]],
+    [[0,0,W],[L,0,W],[L,Hf,W],[0,Hf,W]],
+    [[0,0,0],[0,0,W],[0,Hf,W],[0,Hn,0]],
+    [[L,0,0],[L,0,W],[L,Hf,W],[L,Hn,0]]
+  ];
+  walls.forEach(function (v) {
+    var g = quadGeometry(v[0], v[1], v[2], v[3]);
+    wallGroup.add(new THREE.Mesh(g, wallMat));
+    wallGroup.add(edgeLines(g, 0x8aa89a, 0.5));
+  });
+
+  // Horizontal panel ribs on long walls (sandwich aesthetic)
+  var ribMat = new THREE.LineBasicMaterial({ color: 0x9ab8a8, transparent: true, opacity: 0.25 });
+  for (var ry = 0.4; ry < Hn; ry += 0.4) {
+    var rib1 = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, ry, 0.002), new THREE.Vector3(L, ry, 0.002)
+    ]);
+    var rib2 = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, ry * (Hf / Hn), W - 0.002), new THREE.Vector3(L, ry * (Hf / Hn), W - 0.002)
+    ]);
+    wallGroup.add(new THREE.Line(rib1, ribMat));
+    wallGroup.add(new THREE.Line(rib2, ribMat));
+  }
+  shellGroup.add(wallGroup);
+
+  // Roof
+  var roofMat = new THREE.MeshStandardMaterial({
+    color: 0xb8c8bc, roughness: 0.48, metalness: 0.1,
+    transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false
+  });
+  var roofGeo = quadGeometry([0,Hn,0],[L,Hn,0],[L,Hf,W],[0,Hf,W]);
+  var roofMesh = new THREE.Mesh(roofGeo, roofMat);
+  shellGroup.add(roofMesh);
+  shellGroup.add(edgeLines(roofGeo, 0x7a9a8a, 0.45));
+
+  // Roof purlins / beams
+  var beamGroup = new THREE.Group();
+  var beamMat = new THREE.MeshStandardMaterial({ color: 0x1c2830, roughness: 0.7, metalness: 0.5 });
+  var beamCount = 8;
+  for (var b = 0; b <= beamCount; b++) {
+    var bx = (L / beamCount) * b;
+    var len = Math.sqrt(W * W + (Hn - Hf) * (Hn - Hf));
+    var beam = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.07, len), beamMat);
+    beam.position.set(bx, (Hn + Hf) / 2, W / 2);
+    beam.rotation.x = -Math.atan2(Hn - Hf, W);
+    beamGroup.add(beam);
+  }
+  // Longitudinal ridge rail
+  var ridge = new THREE.Mesh(
+    new THREE.BoxGeometry(L, 0.04, 0.04),
+    beamMat
+  );
+  ridge.position.set(L / 2, Hn - 0.02, 0.15);
+  beamGroup.add(ridge);
+  shellGroup.add(beamGroup);
+
+  // LED tubes — cool white lab lighting
+  var lightStripMat = new THREE.MeshBasicMaterial({ color: 0xe8f4ff });
+  var stripZs = [1.2, 3.0, 4.8];
+  stripZs.forEach(function (sz) {
+    var segCount = 6;
+    var segLen = (L - 0.5) / segCount;
+    for (var s = 0; s < segCount; s++) {
+      var sx = 0.25 + segLen * (s + 0.5);
+      var ceilY = Hn + (Hf - Hn) * (sz / W) - 0.06;
+      var housing = new THREE.Mesh(
+        new THREE.BoxGeometry(segLen * 0.88, 0.04, 0.1),
+        new THREE.MeshStandardMaterial({ color: 0x2a3440, roughness: 0.5, metalness: 0.4 })
+      );
+      housing.position.set(sx, ceilY, sz);
+      shellGroup.add(housing);
+
+      var tube = new THREE.Mesh(
+        new THREE.BoxGeometry(segLen * 0.8, 0.02, 0.05),
+        lightStripMat
+      );
+      tube.position.set(sx, ceilY - 0.025, sz);
+      shellGroup.add(tube);
+
+      if (s % 2 === 0) {
+        var pl = new THREE.PointLight(0xddeeff, 0.48, 5.2, 2);
+        pl.position.set(sx, ceilY - 0.2, sz);
+        shellGroup.add(pl);
+      }
+    }
+  });
+
+  // Hanging service cables
+  var cableMat = new THREE.LineBasicMaterial({ color: 0x3a4550, transparent: true, opacity: 0.7 });
+  function hangingCable(x, z, topY, sag) {
+    var pts = [];
+    for (var i = 0; i <= 12; i++) {
+      var t = i / 12;
+      pts.push(new THREE.Vector3(x + t * 0.2, topY - sag * Math.sin(t * Math.PI), z + t * 0.08));
+    }
+    shellGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), cableMat));
+  }
+  hangingCable(3.0, 2.7, Hn - 0.08, 1.0);
+  hangingCable(7.4, 3.2, Hf + 0.05, 0.85);
+
+  scene.add(shellGroup);
+
+  // ─── Shelving (industrial green-coated rails) ───────────────────
+  var shelfGroup = new THREE.Group();
+  var blockGroup = new THREE.Group();
+  var labelGroup = new THREE.Group();
+
+  var poleMat = new THREE.MeshStandardMaterial({
+    color: 0x1a2330, roughness: 0.55, metalness: 0.55
+  });
+  var crossBarMat = new THREE.MeshStandardMaterial({
+    color: 0x3d4f45, roughness: 0.5, metalness: 0.45
+  });
+  var footMat = new THREE.MeshStandardMaterial({
+    color: 0x0f141c, roughness: 0.8, metalness: 0.3
+  });
+
+  var poleGeo = new THREE.CylinderGeometry(0.022, 0.024, 1, 10);
+  var footGeo = new THREE.CylinderGeometry(0.04, 0.045, 0.03, 10);
+
+  var ROW_LENGTH_EDGE = 12;
+  var ROW_LENGTH_MID = 9;
+  function rowSpanFor(rowIdx) {
+    var isEdge = (rowIdx === 0 || rowIdx === SHELF.rows - 1);
+    var length = isEdge ? ROW_LENGTH_EDGE : ROW_LENGTH_MID;
+    var start = isEdge ? 0 : (L - length) / 2;
+    return { length: length, start: start };
+  }
+
+  var tierHeights = [];
+  for (var t = 0; t < SHELF.tiers; t++) tierHeights.push(SHELF.firstHeight + t * SHELF.gap);
+
+  var rowZStarts = [];
+  (function computeRows() {
+    var z = SHELF.marginZ;
+    for (var r = 0; r < SHELF.rows; r++) {
+      rowZStarts.push(z);
+      z += SHELF.depth;
+      if (r < SHELF.rows - 1) z += SHELF.aisles[r];
+    }
+  })();
+
+  // Aisle floor highlight strips
+  var aisleMat = new THREE.MeshBasicMaterial({
+    color: 0x3dd6c6, transparent: true, opacity: 0.04, depthWrite: false
+  });
+  for (var a = 0; a < SHELF.aisles.length; a++) {
+    var az0 = rowZStarts[a] + SHELF.depth;
+    var aw = SHELF.aisles[a];
+    var aisle = new THREE.Mesh(
+      new THREE.PlaneGeometry(L - 0.2, aw * 0.85),
+      aisleMat
+    );
+    aisle.rotation.x = -Math.PI / 2;
+    aisle.position.set(L / 2, 0.006, az0 + aw / 2);
+    shelfGroup.add(aisle);
+  }
+
+  // Substrate blocks
+  function deformedGeometry(radius, seed) {
+    var geo = new THREE.IcosahedronGeometry(radius, 1);
+    var pos = geo.attributes.position;
+    var v = new THREE.Vector3();
+    for (var i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      var n = Math.sin((v.x + seed) * 21) + Math.sin((v.y + seed * 1.7) * 17) + Math.sin((v.z + seed * 2.3) * 25);
+      v.multiplyScalar(1 + (n / 3) * 0.26);
+      pos.setXYZ(i, v.x, v.y * 0.72, v.z);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }
+  var blockGeoVariants = [deformedGeometry(0.15, 0.4), deformedGeometry(0.16, 1.9), deformedGeometry(0.14, 3.2)];
+  var blockMatVariants = [
+    new THREE.MeshStandardMaterial({ color: 0x3d2e1c, roughness: 0.94 }),
+    new THREE.MeshStandardMaterial({ color: 0x7a6a48, roughness: 0.92 }),
+    new THREE.MeshStandardMaterial({ color: 0x5c4a2e, roughness: 0.93 })
+  ];
+  var capMat = new THREE.MeshStandardMaterial({ color: 0xd4c4a0, roughness: 0.55 });
+  var stemMat = new THREE.MeshStandardMaterial({ color: 0xf0e8d4, roughness: 0.45 });
+  var capGeo = new THREE.ConeGeometry(0.026, 0.02, 8);
+  var stemGeo = new THREE.CylinderGeometry(0.007, 0.01, 0.045, 6);
+
+  function addMushroomCluster(parent, x, y, z, count) {
+    for (var i = 0; i < count; i++) {
+      var ang = (i / count) * Math.PI * 2 + Math.random() * 0.5;
+      var r = 0.045 + Math.random() * 0.02;
+      var mx = x + Math.cos(ang) * r;
+      var mz = z + Math.sin(ang) * r;
+      var stem = new THREE.Mesh(stemGeo, stemMat);
+      stem.position.set(mx, y + 0.022, mz);
+      stem.rotation.z = (Math.random() - 0.5) * 0.4;
+      parent.add(stem);
+      var cap = new THREE.Mesh(capGeo, capMat);
+      cap.position.set(mx, y + 0.046, mz);
+      cap.rotation.x = Math.PI;
+      parent.add(cap);
+    }
+  }
+
+  // Canvas label sprites for rack rows
+  function makeTextSprite(text, opts) {
+    opts = opts || {};
+    var canvas = document.createElement("canvas");
+    canvas.width = 256; canvas.height = 64;
+    var ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, 256, 64);
+    ctx.fillStyle = opts.bg || "rgba(12,18,28,0.85)";
+    roundRect(ctx, 8, 12, 240, 40, 8);
+    ctx.fill();
+    ctx.strokeStyle = opts.border || "rgba(61,214,198,0.4)";
+    ctx.lineWidth = 2;
+    roundRect(ctx, 8, 12, 240, 40, 8);
+    ctx.stroke();
+    ctx.fillStyle = opts.color || "#3dd6c6";
+    ctx.font = "600 22px Inter, system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 128, 32);
+    var tex = new THREE.CanvasTexture(canvas);
+    tex.encoding = THREE.sRGBEncoding;
+    var mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: true });
+    var spr = new THREE.Sprite(mat);
+    spr.scale.set(opts.scaleX || 1.1, opts.scaleY || 0.28, 1);
+    return spr;
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  rowZStarts.forEach(function (zStart, rowIdx) {
+    var zCenter = zStart + SHELF.depth / 2;
+    var topY = tierHeights[tierHeights.length - 1];
+    var span = rowSpanFor(rowIdx);
+    var rowLength = span.length;
+    var rowStartX = span.start;
+    var railTint = ROW_TINTS[rowIdx];
+    var railMat = new THREE.MeshStandardMaterial({
+      color: railTint, roughness: 0.38, metalness: 0.42,
+      emissive: railTint, emissiveIntensity: 0.03
+    });
+
+    // Poles + feet
+    function addPole(px, pz) {
+      var pole = new THREE.Mesh(poleGeo, poleMat);
+      pole.scale.y = topY + 0.12;
+      pole.position.set(px, (topY + 0.12) / 2, pz);
+      pole.castShadow = true;
+      shelfGroup.add(pole);
+      var foot = new THREE.Mesh(footGeo, footMat);
+      foot.position.set(px, 0.015, pz);
+      shelfGroup.add(foot);
+      // top cap
+      var cap = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.022, 0.03, 8), poleMat);
+      cap.position.set(px, topY + 0.1, pz);
+      shelfGroup.add(cap);
+    }
+
+    [rowStartX + 0.05, rowStartX + rowLength - 0.05].forEach(function (px) {
+      [zStart + 0.05, zStart + SHELF.depth - 0.05].forEach(function (pz) {
+        addPole(px, pz);
+      });
+    });
+
+    var midCount = Math.floor(rowLength / 2.0);
+    for (var m = 1; m < midCount; m++) {
+      var px2 = rowStartX + (rowLength / midCount) * m;
+      [zStart + 0.05, zStart + SHELF.depth - 0.05].forEach(function (pz) {
+        addPole(px2, pz);
+      });
+    }
+
+    // Vertical safety back plate (subtle) on wall-edge rows
+    if (rowIdx === 0 || rowIdx === SHELF.rows - 1) {
+      var backZ = rowIdx === 0 ? zStart + 0.02 : zStart + SHELF.depth - 0.02;
+      var back = new THREE.Mesh(
+        new THREE.BoxGeometry(rowLength * 0.98, topY * 0.92, 0.012),
+        new THREE.MeshStandardMaterial({
+          color: 0x1e2a28, roughness: 0.7, metalness: 0.15,
+          transparent: true, opacity: 0.35
+        })
+      );
+      back.position.set(rowStartX + rowLength / 2, topY * 0.5, backZ);
+      shelfGroup.add(back);
+    }
+
+    tierHeights.forEach(function (h, tierIdx) {
+      // Twin rails
+      [zStart + 0.08, zStart + SHELF.depth - 0.08].forEach(function (railZ) {
+        var rail = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.015, 0.015, rowLength, 10),
+          railMat
+        );
+        rail.rotation.z = Math.PI / 2;
+        rail.position.set(rowStartX + rowLength / 2, h, railZ);
+        rail.castShadow = true;
+        shelfGroup.add(rail);
+      });
+
+      // Cross bars
+      var barCount = Math.floor(rowLength / 2.0);
+      var crossGeo = new THREE.CylinderGeometry(0.012, 0.012, SHELF.depth - 0.12, 6);
+      for (var cb = 0; cb <= barCount; cb++) {
+        var cbx = rowStartX + (rowLength / barCount) * cb;
+        var bar = new THREE.Mesh(crossGeo, crossBarMat);
+        bar.rotation.x = Math.PI / 2;
+        bar.position.set(cbx, h, zCenter);
+        shelfGroup.add(bar);
+      }
+
+      // Small tier index badge on first bay (row 0 only, all tiers)
+      if (rowIdx === 0 && (tierIdx === 0 || tierIdx === SHELF.tiers - 1)) {
+        var thr = makeTextSprite("K" + (tierIdx + 1) + " · " + Math.round(h * 100) + "cm", {
+          scaleX: 0.7, scaleY: 0.18, color: "#8fb3a6",
+          border: "rgba(100,140,160,0.35)"
+        });
+        thr.position.set(rowStartX + 0.55, h + 0.14, zStart - 0.05);
+        labelGroup.add(thr);
+      }
+
+      // Blocks
+      var itemsAlong = Math.max(3, Math.round(rowLength / 1.8));
+      for (var i = 0; i < itemsAlong; i++) {
+        var ix = rowStartX + 0.55 + i * ((rowLength - 1.1) / (itemsAlong - 1));
+        var iz = zCenter + (((i + rowIdx) % 2 === 0) ? -0.08 : 0.08);
+        var variant = (i + tierIdx + rowIdx) % blockGeoVariants.length;
+        var block = new THREE.Mesh(blockGeoVariants[variant], blockMatVariants[variant]);
+        block.position.set(ix, h + 0.09, iz);
+        block.rotation.y = ((i * 37 + rowIdx * 13 + tierIdx * 7) % 20) / 20 * Math.PI;
+        block.scale.setScalar(0.85 + ((i + tierIdx) % 3) * 0.12);
+        block.castShadow = true;
+        block.receiveShadow = true;
+        blockGroup.add(block);
+        if ((i + tierIdx * 2 + rowIdx) % 3 === 0) {
+          addMushroomCluster(blockGroup, ix, h + 0.11, iz + 0.09, 3 + ((i + tierIdx) % 3));
+        }
+      }
+    });
+
+    // Row end label
+    var rowLabel = makeTextSprite("RAF " + (rowIdx + 1), {
+      scaleX: 0.9, scaleY: 0.22
+    });
+    rowLabel.position.set(rowStartX + rowLength + 0.35, 1.15, zCenter);
+    labelGroup.add(rowLabel);
+  });
+
+  scene.add(shelfGroup);
+  scene.add(blockGroup);
+  scene.add(labelGroup);
+
+  // ─── HVAC loads (fan / petek / ultrasonic geometry) ─────────────
+  var hvacGroup = new THREE.Group();
+  hvacGroup.name = "hvacLoads";
+  var fanRotorGroups = [];
+
+  function makeHoneycombTexture() {
+    var c = document.createElement("canvas");
+    c.width = 256; c.height = 256;
+    var ctx = c.getContext("2d");
+    ctx.fillStyle = "#8b6a3a";
+    ctx.fillRect(0, 0, 256, 256);
+    ctx.strokeStyle = "rgba(40,28,12,0.55)";
+    ctx.lineWidth = 1.2;
+    var s = 14;
+    for (var row = -1; row < 22; row++) {
+      for (var col = -1; col < 22; col++) {
+        var ox = col * s * 1.5;
+        var oy = row * s * Math.sqrt(3) + (col % 2 ? s * Math.sqrt(3) / 2 : 0);
+        ctx.beginPath();
+        for (var i = 0; i < 6; i++) {
+          var a = (Math.PI / 3) * i;
+          var px = ox + s * 0.55 * Math.cos(a);
+          var py = oy + s * 0.55 * Math.sin(a);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = (row + col) % 3 === 0 ? "#a07a42" : "#7a5c32";
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+    // wet sheen streaks
+    ctx.strokeStyle = "rgba(120,190,200,0.18)";
+    for (var w = 0; w < 18; w++) {
+      ctx.beginPath();
+      ctx.moveTo(20 + w * 14, 0);
+      ctx.lineTo(8 + w * 14, 256);
+      ctx.stroke();
+    }
+    var tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(4, 2);
+    tex.encoding = THREE.sRGBEncoding;
+    return tex;
+  }
+
+  function buildAxialFan(cx, cy, cz) {
+    var g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    var R = HVAC.fan.diameter / 2;
+    var depth = HVAC.fan.depth;
+    var metal = new THREE.MeshStandardMaterial({
+      color: 0x3a4550, roughness: 0.45, metalness: 0.65
+    });
+    var accent = new THREE.MeshStandardMaterial({
+      color: 0x1e2936, roughness: 0.4, metalness: 0.7
+    });
+    var bladeMat = new THREE.MeshStandardMaterial({
+      color: 0x5a6570, roughness: 0.35, metalness: 0.55, side: THREE.DoubleSide
+    });
+
+    // wall mount plate
+    var plate = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, HVAC.fan.diameter * 1.15, HVAC.fan.diameter * 1.15),
+      metal
+    );
+    plate.position.x = -0.02;
+    g.add(plate);
+
+    // cylindrical housing (axis along +X into room)
+    var housing = new THREE.Mesh(
+      new THREE.CylinderGeometry(R * 1.02, R * 1.02, depth * 0.85, 32, 1, true),
+      metal
+    );
+    housing.rotation.z = Math.PI / 2;
+    housing.position.x = depth * 0.35;
+    g.add(housing);
+
+    // outer flange ring
+    var flange = new THREE.Mesh(
+      new THREE.TorusGeometry(R * 1.02, 0.018, 8, 40),
+      accent
+    );
+    flange.rotation.y = Math.PI / 2;
+    flange.position.x = depth * 0.05;
+    g.add(flange);
+
+    // front guard rings
+    for (var gr = 0; gr < 3; gr++) {
+      var guard = new THREE.Mesh(
+        new THREE.TorusGeometry(R * (0.35 + gr * 0.28), 0.006, 6, 40),
+        new THREE.MeshBasicMaterial({ color: 0x8a96a4, transparent: true, opacity: 0.55 })
+      );
+      guard.rotation.y = Math.PI / 2;
+      guard.position.x = depth * 0.72;
+      g.add(guard);
+    }
+
+    // rotor
+    var rotor = new THREE.Group();
+    rotor.position.x = depth * 0.42;
+    var hub = new THREE.Mesh(
+      new THREE.CylinderGeometry(R * 0.14, R * 0.16, 0.06, 16),
+      accent
+    );
+    hub.rotation.z = Math.PI / 2;
+    rotor.add(hub);
+    for (var b = 0; b < HVAC.fan.blades; b++) {
+      var blade = new THREE.Mesh(
+        new THREE.BoxGeometry(0.012, R * 0.72, R * 0.18),
+        bladeMat
+      );
+      blade.position.y = R * 0.38;
+      var pivot = new THREE.Group();
+      pivot.rotation.x = (b / HVAC.fan.blades) * Math.PI * 2;
+      pivot.add(blade);
+      rotor.add(pivot);
+    }
+    g.add(rotor);
+    fanRotorGroups.push(rotor);
+
+    // label
+    var fl = makeTextSprite("YSA", { scaleX: 0.55, scaleY: 0.16, color: "#7dd3fc" });
+    fl.position.set(depth * 0.55, R + 0.12, 0);
+    g.add(fl);
+
+    return g;
+  }
+
+  function buildPetekPad(cz) {
+    var g = new THREE.Group();
+    var Lz = HVAC.petek.length;
+    var H = HVAC.petek.height;
+    var T = HVAC.petek.thickness;
+    var x = HVAC.petek.wallX - T / 2;
+    var y = HVAC.petek.bottomY + H / 2;
+    g.position.set(x, y, cz);
+
+    var frameMat = new THREE.MeshStandardMaterial({
+      color: 0x4a5560, roughness: 0.55, metalness: 0.45
+    });
+    var padMat = new THREE.MeshStandardMaterial({
+      map: makeHoneycombTexture(),
+      color: 0xffffff,
+      roughness: 0.92,
+      metalness: 0.05,
+      side: THREE.DoubleSide
+    });
+    var wetMat = new THREE.MeshStandardMaterial({
+      color: 0x3d8a7a, roughness: 0.35, metalness: 0.1,
+      transparent: true, opacity: 0.22, side: THREE.DoubleSide
+    });
+
+    // outer galvanized frame
+    var frame = new THREE.Mesh(
+      new THREE.BoxGeometry(T + 0.04, H + 0.08, Lz + 0.08),
+      frameMat
+    );
+    g.add(frame);
+
+    // cellulose pad core
+    var pad = new THREE.Mesh(new THREE.BoxGeometry(T, H, Lz), padMat);
+    pad.position.x = -0.005;
+    g.add(pad);
+
+    // wet face film (room-facing)
+    var wet = new THREE.Mesh(new THREE.PlaneGeometry(Lz * 0.98, H * 0.98), wetMat);
+    wet.rotation.y = -Math.PI / 2;
+    wet.position.x = -T / 2 - 0.01;
+    g.add(wet);
+
+    // top water trough
+    var trough = new THREE.Mesh(
+      new THREE.BoxGeometry(T + 0.06, 0.06, Lz + 0.1),
+      new THREE.MeshStandardMaterial({ color: 0x2a3340, roughness: 0.5, metalness: 0.4 })
+    );
+    trough.position.y = H / 2 + 0.04;
+    g.add(trough);
+
+    // bottom drain channel
+    var drain = new THREE.Mesh(
+      new THREE.BoxGeometry(T + 0.08, 0.05, Lz + 0.12),
+      new THREE.MeshStandardMaterial({ color: 0x1e2832, roughness: 0.6, metalness: 0.35 })
+    );
+    drain.position.y = -H / 2 - 0.04;
+    g.add(drain);
+
+    // vertical frame ribs
+    for (var ri = 0; ri < 5; ri++) {
+      var rib = new THREE.Mesh(
+        new THREE.BoxGeometry(0.02, H * 0.98, 0.02),
+        frameMat
+      );
+      rib.position.set(-T / 2 - 0.015, 0, -Lz / 2 + 0.1 + ri * ((Lz - 0.2) / 4));
+      g.add(rib);
+    }
+
+    return g;
+  }
+
+  function buildUltrasonic() {
+    var g = new THREE.Group();
+    var sx = HVAC.ultrasonic.size[0];
+    var sy = HVAC.ultrasonic.size[1];
+    var sz = HVAC.ultrasonic.size[2];
+    g.position.set(
+      HVAC.ultrasonic.pos[0],
+      HVAC.ultrasonic.pos[1] + sy / 2,
+      HVAC.ultrasonic.pos[2]
+    );
+
+    var bodyMat = new THREE.MeshStandardMaterial({
+      color: 0xe8e4d8, roughness: 0.75, metalness: 0.05
+    });
+    var body = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), bodyMat);
+    g.add(body);
+
+    // top outlet lip
+    var lip = new THREE.Mesh(
+      new THREE.BoxGeometry(sx * 0.55, 0.06, sz * 0.35),
+      new THREE.MeshStandardMaterial({ color: 0xd0ccc0, roughness: 0.7 })
+    );
+    lip.position.set(0, sy / 2 + 0.02, -sz * 0.15);
+    g.add(lip);
+
+    // metal bracket
+    var bracket = new THREE.Mesh(
+      new THREE.BoxGeometry(sx * 1.05, 0.04, sz * 0.9),
+      new THREE.MeshStandardMaterial({ color: 0x5a4634, roughness: 0.8, metalness: 0.3 })
+    );
+    bracket.position.y = -sy / 2 - 0.02;
+    g.add(bracket);
+
+    // rail under bracket
+    var rail = new THREE.Mesh(
+      new THREE.BoxGeometry(sx * 1.1, 0.05, 0.06),
+      new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.5, metalness: 0.5 })
+    );
+    rail.position.set(0, -sy / 2 - 0.08, 0);
+    g.add(rail);
+
+    // soft vapor sprite above
+    var mistC = document.createElement("canvas");
+    mistC.width = 64; mistC.height = 64;
+    var mctx = mistC.getContext("2d");
+    var grd = mctx.createRadialGradient(32, 32, 4, 32, 32, 30);
+    grd.addColorStop(0, "rgba(220,235,255,0.55)");
+    grd.addColorStop(1, "rgba(220,235,255,0)");
+    mctx.fillStyle = grd;
+    mctx.fillRect(0, 0, 64, 64);
+    var mtex = new THREE.CanvasTexture(mistC);
+    var vapor = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: mtex, transparent: true, opacity: 0.45, depthWrite: false
+    }));
+    vapor.scale.set(0.7, 0.55, 1);
+    vapor.position.set(0, sy / 2 + 0.28, 0);
+    g.add(vapor);
+
+    return g;
+  }
+
+  HVAC.fan.centersZ.forEach(function (z) {
+    hvacGroup.add(buildAxialFan(HVAC.fan.wallX, HVAC.fan.centerY, z));
+  });
+  HVAC.petek.centersZ.forEach(function (z) {
+    hvacGroup.add(buildPetekPad(z));
+  });
+  hvacGroup.add(buildUltrasonic());
+
+  // wall captions
+  var fanWallLabel = makeTextSprite("FAN · Ayas YSA ×2", {
+    scaleX: 1.4, scaleY: 0.24, color: "#7dd3fc"
+  });
+  fanWallLabel.position.set(0.55, 2.15, 1.72);
+  hvacGroup.add(fanWallLabel);
+
+  var padWallLabel = makeTextSprite("PETEK · 2×2m×1m evaporatif", {
+    scaleX: 1.8, scaleY: 0.24, color: "#5eead4"
+  });
+  padWallLabel.position.set(11.4, 1.65, 3.0);
+  hvacGroup.add(padWallLabel);
+
+  scene.add(hvacGroup);
+
+  // ─── IoT markers ────────────────────────────────────────────────
+  var markerGroup = new THREE.Group();
+  var pickable = [];
+  var deviceMarkers = [];
+
+  devices.forEach(function (d, idx) {
+    var group = new THREE.Group();
+    group.position.set(d.pos[0], d.pos[1], d.pos[2]);
+    group.userData.device = d;
+    group.userData.idx = idx;
+
+    // Pillar stem
+    var stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.012, 0.018, 0.35, 8),
+      new THREE.MeshStandardMaterial({
+        color: d.color, emissive: d.color, emissiveIntensity: 0.25, roughness: 0.4, metalness: 0.3
+      })
+    );
+    stem.position.y = -0.18;
+    group.add(stem);
+
+    // Core sphere
+    var core = new THREE.Mesh(
+      new THREE.SphereGeometry(0.09, 24, 24),
+      new THREE.MeshStandardMaterial({
+        color: d.color, emissive: d.color, emissiveIntensity: 0.65, roughness: 0.3, metalness: 0.2
+      })
+    );
+    core.userData.device = d;
+    group.add(core);
+    pickable.push(core);
+
+    // Outer ring (torus)
+    var ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.14, 0.012, 8, 32),
+      new THREE.MeshBasicMaterial({ color: d.color, transparent: true, opacity: 0.55 })
+    );
+    ring.rotation.x = Math.PI / 2;
+    group.add(ring);
+
+    // Soft glow light
+    var glow = new THREE.PointLight(d.color, 0.55, 2.4);
+    group.add(glow);
+
+    // Floating label
+    var spr = makeTextSprite(d.name, {
+      scaleX: 0.85, scaleY: 0.22,
+      color: "#" + d.color.toString(16).padStart(6, "0"),
+      border: "rgba(255,255,255,0.15)"
+    });
+    spr.position.y = 0.28;
+    group.add(spr);
+    group.userData.label = spr;
+    group.userData.ring = ring;
+
+    markerGroup.add(group);
+    deviceMarkers.push(group);
+  });
+  scene.add(markerGroup);
+
+  // ─── UI: device list ────────────────────────────────────────────
+  var deviceListEl = document.getElementById("deviceList");
+  var activeDevIdx = -1;
+
+  devices.forEach(function (d, idx) {
+    var row = document.createElement("div");
+    row.className = "dev-item";
+    row.dataset.idx = String(idx);
+    var hex = "#" + d.color.toString(16).padStart(6, "0");
+    row.innerHTML =
+      '<span class="swatch round" style="background:' + hex + '"></span>' +
+      '<span class="name">' + d.name + '</span>' +
+      (d.warn ? '<span class="warn-dot" title="Uyarı"></span>' : "") +
+      '<span class="tag">' + d.kind + "</span>";
+    row.addEventListener("click", function () {
+      selectDevice(idx, true);
+    });
+    deviceListEl.appendChild(row);
+  });
+
+  // ─── Info panel ─────────────────────────────────────────────────
+  var infoEl = document.getElementById("info");
+  var infoName = document.getElementById("infoName");
+  var infoRole = document.getElementById("infoRole");
+  var infoTable = document.getElementById("infoTable");
+
+  document.getElementById("infoClose").addEventListener("click", function () {
+    infoEl.classList.remove("visible");
+    setActiveList(-1);
+  });
+
+  function setActiveList(idx) {
+    activeDevIdx = idx;
+    var items = deviceListEl.querySelectorAll(".dev-item");
+    items.forEach(function (el, i) {
+      el.classList.toggle("active", i === idx);
+    });
+  }
+
+  function showInfo(d) {
+    infoName.textContent = d.name;
+    infoName.style.color = "#" + d.color.toString(16).padStart(6, "0");
+    infoRole.textContent = d.role;
+    infoTable.innerHTML = "";
+    d.fields.forEach(function (f) {
+      var tr = document.createElement("tr");
+      var warnClass = (d.warn && f[0] === "Sensör") ? " warn" : "";
+      tr.innerHTML = '<td class="k">' + f[0] + '</td><td class="v' + warnClass + '">' + f[1] + "</td>";
+      infoTable.appendChild(tr);
+    });
+    infoEl.classList.add("visible");
+  }
+
+  function focusOn(pos) {
+    controls.target.set(pos[0], pos[1], pos[2]);
+  }
+
+  function selectDevice(idx, fly) {
+    var d = devices[idx];
+    setActiveList(idx);
+    showInfo(d);
+    if (fly) focusOn(d.pos);
+  }
+
+  // Raycast
+  var raycaster = new THREE.Raycaster();
+  var mouse = new THREE.Vector2();
+  renderer.domElement.addEventListener("click", function (event) {
+    var rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    var hits = raycaster.intersectObjects(pickable);
+    if (hits.length > 0) {
+      var d = hits[0].object.userData.device;
+      var idx = devices.indexOf(d);
+      selectDevice(idx, false);
+    }
+  });
+  renderer.domElement.style.cursor = "grab";
+  renderer.domElement.addEventListener("pointerdown", function () {
+    renderer.domElement.style.cursor = "grabbing";
+  });
+  renderer.domElement.addEventListener("pointerup", function () {
+    renderer.domElement.style.cursor = "grab";
+  });
+
+  // ─── Views ──────────────────────────────────────────────────────
+  var views = {
+    overview: { pos: [15.5, 9.2, 12.8], target: [L / 2, 1.05, W / 2] },
+    aisle: { pos: [0.7, 1.55, rowZStarts[1] + SHELF.depth + SHELF.aisles[1] / 2], target: [L - 1.2, 1.4, rowZStarts[1] + SHELF.depth + SHELF.aisles[1] / 2] },
+    top: { pos: [L / 2, 16, W / 2 + 0.01], target: [L / 2, 0, W / 2] },
+    end: { pos: [-4.5, 3.2, W / 2], target: [4, 1.2, W / 2] }
+  };
+
+  document.querySelectorAll("#controls [data-view]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#controls [data-view]").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      var v = views[btn.dataset.view];
+      camera.position.set(v.pos[0], v.pos[1], v.pos[2]);
+      controls.target.set(v.target[0], v.target[1], v.target[2]);
+      controls.update();
+    });
+  });
+
+  // ─── Toggles ────────────────────────────────────────────────────
+  document.getElementById("toggleRoof").addEventListener("change", function (e) {
+    roofMesh.visible = !e.target.checked;
+    beamGroup.visible = !e.target.checked;
+  });
+  document.getElementById("toggleWalls").addEventListener("change", function (e) {
+    wallGroup.visible = e.target.checked;
+  });
+  document.getElementById("toggleBlocks").addEventListener("change", function (e) {
+    blockGroup.visible = e.target.checked;
+  });
+  document.getElementById("toggleGrid").addEventListener("change", function (e) {
+    gridGroup.visible = e.target.checked;
+  });
+  document.getElementById("toggleLabels").addEventListener("change", function (e) {
+    labelGroup.visible = e.target.checked;
+    deviceMarkers.forEach(function (g) {
+      if (g.userData.label) g.userData.label.visible = e.target.checked;
+    });
+  });
+  document.getElementById("toggleHvac").addEventListener("change", function (e) {
+    hvacGroup.visible = e.target.checked;
+  });
+  document.getElementById("toggleRotate").addEventListener("change", function (e) {
+    controls.autoRotate = e.target.checked;
+    controls.autoRotateSpeed = 0.55;
+  });
+  document.getElementById("toggleFog").addEventListener("change", function (e) {
+    fogState.enabled = e.target.checked;
+    applyFog();
+  });
+  document.getElementById("fogRange").addEventListener("input", function (e) {
+    fogState.amount = e.target.value / 100;
+    applyFog();
+  });
+
+  // ─── Minimap ────────────────────────────────────────────────────
+  var mm = document.getElementById("minimapCanvas");
+  var mmCtx = mm.getContext("2d");
+
+  function drawMinimap() {
+    var w = mm.width, h = mm.height;
+    var pad = 12;
+    var sx = (w - pad * 2) / L;
+    var sy = (h - pad * 2) / W;
+    mmCtx.clearRect(0, 0, w, h);
+    mmCtx.fillStyle = "#0a1018";
+    mmCtx.fillRect(0, 0, w, h);
+
+    // room outline
+    mmCtx.strokeStyle = "rgba(61,214,198,0.45)";
+    mmCtx.lineWidth = 1.5;
+    mmCtx.strokeRect(pad, pad, L * sx, W * sy);
+
+    // racks
+    rowZStarts.forEach(function (zStart, ri) {
+      var span = rowSpanFor(ri);
+      var x = pad + span.start * sx;
+      var y = pad + zStart * sy;
+      var rw = span.length * sx;
+      var rh = SHELF.depth * sy;
+      mmCtx.fillStyle = "rgba(45,138,110,0.45)";
+      mmCtx.fillRect(x, y, rw, rh);
+      mmCtx.strokeStyle = "rgba(61,214,198,0.25)";
+      mmCtx.lineWidth = 0.8;
+      mmCtx.strokeRect(x, y, rw, rh);
+    });
+
+    // HVAC: fans (circles on short wall x≈0)
+    HVAC.fan.centersZ.forEach(function (z) {
+      var fx = pad + HVAC.fan.wallX * sx;
+      var fy = pad + z * sy;
+      var fr = Math.max(3, (HVAC.fan.diameter * sy) / 2);
+      mmCtx.beginPath();
+      mmCtx.arc(fx, fy, fr, 0, Math.PI * 2);
+      mmCtx.strokeStyle = "rgba(56,189,248,0.85)";
+      mmCtx.lineWidth = 1.4;
+      mmCtx.stroke();
+      mmCtx.fillStyle = "rgba(56,189,248,0.2)";
+      mmCtx.fill();
+    });
+
+    // HVAC: peteks (rects on short wall x≈L)
+    HVAC.petek.centersZ.forEach(function (z) {
+      var pw = HVAC.petek.thickness * sx * 3;
+      var ph = HVAC.petek.length * sy;
+      var px = pad + HVAC.petek.wallX * sx - pw;
+      var py = pad + (z - HVAC.petek.length / 2) * sy;
+      mmCtx.fillStyle = "rgba(45,212,168,0.45)";
+      mmCtx.fillRect(px, py, Math.max(4, pw), ph);
+      mmCtx.strokeStyle = "rgba(45,212,168,0.8)";
+      mmCtx.lineWidth = 1;
+      mmCtx.strokeRect(px, py, Math.max(4, pw), ph);
+    });
+
+    // devices
+    devices.forEach(function (d) {
+      var x = pad + d.pos[0] * sx;
+      var y = pad + d.pos[2] * sy;
+      mmCtx.beginPath();
+      mmCtx.arc(x, y, 3.5, 0, Math.PI * 2);
+      mmCtx.fillStyle = "#" + d.color.toString(16).padStart(6, "0");
+      mmCtx.fill();
+    });
+
+    // camera frustum indicator
+    var cx = pad + controls.target.x * sx;
+    var cy = pad + controls.target.z * sy;
+    mmCtx.beginPath();
+    mmCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+    mmCtx.strokeStyle = "rgba(255,255,255,0.6)";
+    mmCtx.lineWidth = 1;
+    mmCtx.stroke();
+
+    // cam pos
+    var cpx = pad + camera.position.x * sx;
+    var cpy = pad + camera.position.z * sy;
+    mmCtx.beginPath();
+    mmCtx.moveTo(cpx, cpy);
+    mmCtx.lineTo(cx, cy);
+    mmCtx.strokeStyle = "rgba(255,255,255,0.25)";
+    mmCtx.stroke();
+  }
+
+  // ─── Animate ────────────────────────────────────────────────────
+  var clock = 0;
+  window.addEventListener("resize", function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    clock += 0.016;
+    controls.update();
+
+    // Gentle marker pulse
+    deviceMarkers.forEach(function (g, i) {
+      var ring = g.userData.ring;
+      if (ring) {
+        var s = 1 + Math.sin(clock * 2.2 + i * 0.7) * 0.08;
+        ring.scale.set(s, s, s);
+        ring.material.opacity = 0.4 + Math.sin(clock * 2.2 + i) * 0.15;
+      }
+    });
+
+    // Axial fan rotors spin (axis = local X)
+    fanRotorGroups.forEach(function (rotor) {
+      rotor.rotation.x += 0.12;
+    });
+
+    // Interior mist drift (sprites stay inside lab bounds)
+    if (fogState.enabled) {
+      mistGroup.children.forEach(function (ch) {
+        if (ch.isSprite && ch.userData.phase != null) {
+          ch.position.y += Math.sin(clock * 0.6 + ch.userData.phase) * 0.0008;
+          ch.position.x += Math.sin(clock * ch.userData.drift + ch.userData.phase) * 0.0012;
+          // clamp to room
+          ch.position.x = Math.max(0.3, Math.min(L - 0.3, ch.position.x));
+          ch.position.y = Math.max(0.2, Math.min(2.05, ch.position.y));
+          ch.position.z = Math.max(0.2, Math.min(W - 0.2, ch.position.z));
+        }
+      });
+    }
+
+    drawMinimap();
+    renderer.render(scene, camera);
+  }
+
+  document.getElementById("loading").style.display = "none";
+  animate();
+})();
+</script>
+</body>
+</html>

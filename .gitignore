@@ -1,0 +1,16 @@
+.build/
+.swiftpm/
+.DS_Store
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcresult
+*.xcodeproj
+*.pem
+*.p12
+*.mobileprovision
+AuthKey_*.p8
+.env
+.env.*
+secrets/
