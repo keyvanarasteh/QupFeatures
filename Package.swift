@@ -14,8 +14,8 @@ import PackageDescription
 /// - [QupCore](https://github.com/keyvanarasteh/QupCore) ≥ 11.12.0
 /// - [QupDesignSystem](https://github.com/keyvanarasteh/QupDesignSystem) ≥ 10.1.0
 /// - [QupNetworking](https://github.com/keyvanarasteh/QupNetworking) ≥ 10.1.0
-/// - [QupFeatureContracts](https://github.com/keyvanarasteh/QupFeatureContracts) ≥ 11.13.0
-/// - [QupQlineAuth](https://github.com/keyvanarasteh/QupQlineAuth) ≥ 10.1.0
+/// - [QupFeatureContracts](https://github.com/keyvanarasteh/QupFeatureContracts) ≥ 11.13.1
+/// - [QupQlineAuth](https://github.com/keyvanarasteh/QupQlineAuth) ≥ 10.2.0
 /// - [QupUX](https://github.com/keyvanarasteh/QupUX) ≥ 1.1.0 (ComponentSystem, LayoutSystem)
 /// - [QupAPI](https://github.com/keyvanarasteh/QupAPI) ≥ 1.0.1 (AIAPI, DynamicPagesAPI, ProjectsAPI, …)
 /// - [QupSwiftAISDK](https://github.com/keyvanarasteh/QupSwiftAISDK) ≥ 10.0.4
@@ -50,10 +50,10 @@ let package = Package(
         .package(url: "https://github.com/keyvanarasteh/QupCore.git", from: "11.12.0"),
         .package(url: "https://github.com/keyvanarasteh/QupDesignSystem.git", from: "10.1.0"),
         .package(url: "https://github.com/keyvanarasteh/QupNetworking.git", from: "10.1.0"),
-        .package(url: "https://github.com/keyvanarasteh/QupFeatureContracts.git", from: "11.13.0"),
-        .package(url: "https://github.com/keyvanarasteh/QupQlineAuth.git", from: "10.1.0"),
+        .package(url: "https://github.com/keyvanarasteh/QupFeatureContracts.git", from: "11.13.1"),
+        .package(url: "https://github.com/keyvanarasteh/QupQlineAuth.git", from: "10.2.0"),
         .package(url: "https://github.com/keyvanarasteh/QupUX.git", from: "1.1.0"),
-        .package(url: "https://github.com/keyvanarasteh/QupAPI.git", from: "1.0.1"),
+        .package(url: "https://github.com/keyvanarasteh/QupAPI.git", from: "1.1.0"),
         .package(url: "https://github.com/keyvanarasteh/QupSwiftAISDK.git", from: "10.0.4"),
         .package(url: "https://github.com/keyvanarasteh/QupFoundationModelsKit.git", from: "10.1.1"),
         .package(url: "https://github.com/keyvanarasteh/QupDynamicUI.git", from: "10.1.1"),
