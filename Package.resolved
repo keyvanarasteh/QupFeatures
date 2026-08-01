@@ -1,13 +1,13 @@
 {
-  "originHash" : "1970472d7ff968244f8d073b9ce6a0d5d1fa65994cbc8dce6a50ee370fb86f5b",
+  "originHash" : "30ddb1002842976cd2adcc134eada52c326d4c18e1108c23006d630bdbda49c9",
   "pins" : [
     {
       "identity" : "qupapi",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupAPI.git",
       "state" : {
-        "revision" : "6ad72a1fe277ecd9e7b8af06d598a00e7d666608",
-        "version" : "1.0.1"
+        "branch" : "master",
+        "revision" : "72aea9d196f6ed4d309feb03105bd187f800b8b1"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupCore.git",
       "state" : {
-        "revision" : "f939a7835afc447ce157b365e4f93570527b88b6",
-        "version" : "11.12.0"
+        "branch" : "master",
+        "revision" : "f939a7835afc447ce157b365e4f93570527b88b6"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupDesignSystem.git",
       "state" : {
-        "revision" : "a3268f104989937e728705befabd45059d4502a4",
-        "version" : "10.1.0"
+        "branch" : "master",
+        "revision" : "a3268f104989937e728705befabd45059d4502a4"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupDynamicUI.git",
       "state" : {
-        "revision" : "e456ae6e8947f9e90328bcb714a6dd5bd7cfc943",
-        "version" : "10.1.1"
+        "branch" : "master",
+        "revision" : "b2724aaa8c559c5f7bbfab682df420a8cd568966"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupFeatureContracts.git",
       "state" : {
-        "revision" : "b8c42f40a0410c61eb68653222f886b6ba6c44fb",
-        "version" : "11.13.0"
+        "branch" : "master",
+        "revision" : "770631319173180806d7ef30434914e3ed2197c3"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupFoundationModelsKit.git",
       "state" : {
-        "revision" : "2119eed8cbb6eaf4918164d782bdaab7ce0d577a",
-        "version" : "10.1.1"
+        "branch" : "master",
+        "revision" : "b903b3c1b27510f52918420f4a3762b8d9ecee8a"
       }
     },
     {
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupNetworking.git",
       "state" : {
-        "revision" : "63847b819fae3505f60309c07479e23cb74f5c06",
-        "version" : "10.1.0"
+        "branch" : "master",
+        "revision" : "1930e7da28452d92befe93e4d3a14d38cdf7fffc"
       }
     },
     {
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupQlineAuth.git",
       "state" : {
-        "revision" : "897218b9a872c7fdbb5618abe7f6de9db9e55505",
-        "version" : "10.1.0"
+        "branch" : "master",
+        "revision" : "78bdbde2445b397df53a2110fff74221fae07765"
       }
     },
     {
@@ -78,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupSwiftAISDK.git",
       "state" : {
-        "revision" : "39e6377e61de372bd2c36209fa7188f2574863bb",
-        "version" : "10.0.4"
+        "branch" : "master",
+        "revision" : "bee17bd3f1116ed6fb06e6fcdae05d8239f3455b"
       }
     },
     {
@@ -87,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/keyvanarasteh/QupUX.git",
       "state" : {
-        "revision" : "6a7409b1c24063118e3ddc32fe6757a3bcce7b50",
-        "version" : "1.1.0"
+        "branch" : "master",
+        "revision" : "10907c9cfa40e546073f15448462071d5a7789dc"
       }
     }
   ],
