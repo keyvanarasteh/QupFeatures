@@ -4,7 +4,7 @@ import PackageDescription
 /// Umbrella source package for Tier-6 feature modules.
 ///
 /// ```swift
-/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.7.3"),
+/// .package(url: "https://github.com/keyvanarasteh/QupFeatures.git", from: "0.7.4"),
 /// // products: AIAgentsFeature, ScratchFeature, MantarlifeFeature,
 /// //           FoundryUI, WikiUI, HostingerUI, iCloudCore, AIFeature,
 /// //           ProjectsFeature, InfoPages, DynamicPagesFeature, ...
@@ -52,11 +52,11 @@ let package = Package(
         .package(url: "https://github.com/keyvanarasteh/QupNetworking.git", from: "10.1.0"),
         .package(url: "https://github.com/keyvanarasteh/QupFeatureContracts.git", from: "11.13.1"),
         .package(url: "https://github.com/keyvanarasteh/QupQlineAuth.git", from: "10.2.0"),
-        .package(url: "https://github.com/keyvanarasteh/QupUX.git", from: "1.1.3"),
-        .package(url: "https://github.com/keyvanarasteh/QupAPI.git", from: "1.1.3"),
+        .package(url: "https://github.com/keyvanarasteh/QupUX.git", from: "1.1.4"),
+        .package(url: "https://github.com/keyvanarasteh/QupAPI.git", from: "1.1.4"),
         .package(url: "https://github.com/keyvanarasteh/QupSwiftAISDK.git", from: "10.0.5"),
         .package(url: "https://github.com/keyvanarasteh/QupFoundationModelsKit.git", from: "10.1.3"),
-        .package(url: "https://github.com/keyvanarasteh/QupDynamicUI.git", from: "10.1.3"),
+        .package(url: "https://github.com/keyvanarasteh/QupDynamicUI.git", from: "10.1.4"),
     ],
     targets: [
         .target(
