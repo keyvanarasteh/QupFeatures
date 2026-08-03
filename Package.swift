@@ -56,7 +56,7 @@ let package = Package(
         .package(path: "../QupAPI"),
         .package(path: "../QupSwiftAISDK"),
         .package(path: "../QupFoundationModelsKit"),
-        .package(path: "../QupDynamicUI"),
+        .package(path: "../QupDynamicUI/DynamicUISource"),
     ],
     targets: [
         .target(
@@ -246,9 +246,9 @@ let package = Package(
                 .product(name: "DesignSystem", package: "QupDesignSystem"),
                 .product(name: "ComponentSystem", package: "QupUX"),
                 .product(name: "QlineAuth", package: "QupQlineAuth"),
-                .product(name: "DynamicUI", package: "QupDynamicUI"),
-                .product(name: "DynamicUILayout", package: "QupDynamicUI"),
-                .product(name: "DynamicUIComponents", package: "QupDynamicUI"),
+                .product(name: "DynamicUI", package: "DynamicUISource"),
+                .product(name: "DynamicUILayout", package: "DynamicUISource"),
+                .product(name: "DynamicUIComponents", package: "DynamicUISource"),
             ],
             path: "QupFeaturesSource/Sources/InfoPages"
         ),
@@ -263,10 +263,10 @@ let package = Package(
                 .product(name: "QlineAuth", package: "QupQlineAuth"),
                 .product(name: "Networking", package: "QupNetworking"),
                 .product(name: "DynamicPagesAPI", package: "QupAPI"),
-                .product(name: "DynamicUI", package: "QupDynamicUI"),
-                .product(name: "DynamicUILayout", package: "QupDynamicUI"),
-                .product(name: "DynamicUIComponents", package: "QupDynamicUI"),
-                .product(name: "DynamicUIHPC", package: "QupDynamicUI"),
+                .product(name: "DynamicUI", package: "DynamicUISource"),
+                .product(name: "DynamicUILayout", package: "DynamicUISource"),
+                .product(name: "DynamicUIComponents", package: "DynamicUISource"),
+                .product(name: "DynamicUIHPC", package: "DynamicUISource"),
             ],
             path: "QupFeaturesSource/Sources/DynamicPagesFeature"
         ),
@@ -276,7 +276,7 @@ let package = Package(
                 "DynamicPagesFeature",
                 .product(name: "DynamicPagesAPI", package: "QupAPI"),
                 .product(name: "Networking", package: "QupNetworking"),
-                .product(name: "DynamicUI", package: "QupDynamicUI"),
+                .product(name: "DynamicUI", package: "DynamicUISource"),
             ],
             path: "QupFeaturesSource/Tests/DynamicPagesFeatureTests"
         ),
