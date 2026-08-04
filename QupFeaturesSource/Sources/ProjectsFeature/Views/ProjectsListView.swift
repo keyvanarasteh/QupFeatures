@@ -95,30 +95,53 @@ public struct ProjectsListView: View {
         }
     }
 
+    /// Title and actions on one line where they fit, otherwise the actions drop
+    /// to their own line. A plain `HStack` compresses the labels instead, which
+    /// on a phone hyphenates "Admin" mid-word.
     private var header: some View {
-        HStack {
-            Text("Projects").font(Theme.Typography.title).foregroundStyle(colors.fg)
-            Spacer()
-            Button {
-                adminOpen = true
-            } label: {
-                Label("Admin", systemImage: "chart.bar")
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Theme.Spacing.sm) {
+                headerTitle
+                Spacer(minLength: Theme.Spacing.md)
+                headerActions
             }
-            .buttonStyle(.bordered)
-            Button {
-                syncOpen = true
-            } label: {
-                Label("Sync", systemImage: "arrow.triangle.2.circlepath")
+            VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+                headerTitle
+                HStack(spacing: Theme.Spacing.sm) {
+                    headerActions
+                    Spacer(minLength: 0)
+                }
             }
-            .buttonStyle(.bordered)
-            Button {
-                createOpen = true
-            } label: {
-                Label("New Project", systemImage: "plus")
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(colors.primary)
         }
+    }
+
+    private var headerTitle: some View {
+        Text("Projects").font(Theme.Typography.title).foregroundStyle(colors.fg)
+    }
+
+    /// `fixedSize` keeps each label at its natural width so `ViewThatFits` sees
+    /// a truthful ideal size rather than one the labels have already shrunk to.
+    @ViewBuilder
+    private var headerActions: some View {
+        Button {
+            adminOpen = true
+        } label: {
+            Label("Admin", systemImage: "chart.bar").fixedSize()
+        }
+        .buttonStyle(.bordered)
+        Button {
+            syncOpen = true
+        } label: {
+            Label("Sync", systemImage: "arrow.triangle.2.circlepath").fixedSize()
+        }
+        .buttonStyle(.bordered)
+        Button {
+            createOpen = true
+        } label: {
+            Label("New Project", systemImage: "plus").fixedSize()
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(colors.primary)
     }
 
     private var searchAndFilterRow: some View {
