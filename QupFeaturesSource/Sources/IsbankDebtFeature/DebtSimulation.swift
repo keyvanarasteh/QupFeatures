@@ -14,7 +14,7 @@ public enum DebtScenario: String, CaseIterable, Identifiable, Sendable {
     public var title: String {
         switch self {
         case .official: "Banka Resmi Rakamı"
-        case .ceiling: "TCMB Tavanı (Azami Yasal)"
+        case .ceiling: "TCMB Tavanı — Yasal Yöntem"
         case .flat: "Hiç İndirilmediyse"
         }
     }
@@ -22,11 +22,18 @@ public enum DebtScenario: String, CaseIterable, Identifiable, Sendable {
     public var assumption: String {
         switch self {
         case .official:
-            "Bankanın Dosya Hesabı'nda beyan ettiği toplam faiz (241.505,75 + 102.250,06 TL) sabit kullanılır; aylık kırılım yok."
+            "Bankanın Dosya Hesabı'nda beyan ettiği toplam faiz (241.505,75 + 102.250,06 TL) sabit " +
+                "kullanılır; günlük kırılım yok. TAKAS + Fibabanka fazlası, mahsup kuralına göre önce " +
+                "Dosya1'in resmî bakiyesini kapatır, taşan kısım Dosya2'ye geçer."
         case .ceiling:
-            "Her ay TCMB'nin doğrulanmış azami (tavan) gecikme faiz oranı, kalan anapara üzerinden basit (bileşik olmayan) faiz olarak uygulanır — bankanın uygulayabileceği en yüksek yasal senaryo."
+            "Yasal yöntem: takip tarihinden (15.08.2024 / 14.10.2024) bugüne (04.08.2026) gün esaslı " +
+                "basit faiz, TCMB'nin doğrulanmış azami tavan oranıyla — ve TBK m.100–102 mahsup " +
+                "sırasıyla iki dosya BİRLİKTE işleniyor (bkz. mahsup önceliği notu). Bankanın " +
+                "uygulayabileceği en yüksek yasal senaryo."
         case .flat:
-            "Takip başlangıcındaki oran (%5,30 / %4,55) hiç düşürülmeden, Ağustos 2026'ya kadar sabit uygulanmış varsayılır — banka tavanı hiç indirmediyse ortaya çıkacak en kötümser senaryo."
+            "Aynı gün esaslı/TBK m.100–102 yöntemi, ama oran hiç düşürülmeden (%5,30 / %4,55) Ağustos " +
+                "2026'ya kadar sabit uygulanmış varsayılır — banka tavanı hiç indirmediyse ortaya " +
+                "çıkacak en kötümser senaryo."
         }
     }
 
@@ -49,18 +56,6 @@ public struct DebtPayment: Equatable, Sendable {
     }
 }
 
-/// One simulated month for one file.
-public struct LedgerEntry: Identifiable, Equatable, Sendable {
-    public var id: String { month }
-    public let month: String
-    public let rate: Double
-    public let interest: Double
-    public let paid: Double
-    /// Remaining principal plus unpaid accrued interest. Goes negative once the
-    /// payments overtake the debt.
-    public let balance: Double
-}
-
 /// A month of the combined run, as the ledger table shows it.
 public struct CombinedLedgerRow: Identifiable, Equatable, Sendable {
     public var id: String { month }
@@ -73,7 +68,7 @@ public struct CombinedLedgerRow: Identifiable, Equatable, Sendable {
     public let totalBalance: Double
 }
 
-/// The outcome of one scenario at one split setting.
+/// The outcome of one scenario.
 public struct SimulationResult: Equatable, Sendable {
     public let file1Balance: Double
     public let file2Balance: Double
@@ -89,10 +84,18 @@ public struct SimulationResult: Equatable, Sendable {
 /// Month-by-month re-derivation of both files from the verified payment record.
 ///
 /// The official file account gives one lump interest figure and no periodic
-/// breakdown, so the only way to test it is to re-run the arithmetic: simple
-/// interest on the outstanding principal each month, payments applied to
-/// accrued interest before principal (TBK m.100), across every documented
-/// payment channel rather than only the ones the file credited.
+/// breakdown, so the only way to test it is to re-run the arithmetic: day-based
+/// simple interest on the outstanding principal, payments applied to accrued
+/// interest before principal (TBK m.100), across every documented payment
+/// channel rather than only the ones the file credited.
+///
+/// Which debt a payment retires is not a free parameter: maaş haczi is bound to
+/// file 1 by the İİK "sıra" rule (whichever garnishment reaches the employer
+/// first collects alone until that debt is gone); dekontlar that name "ek hesap
+/// borcu" explicitly are bound to file 1 by the debtor's own designation (TBK
+/// m.101); and everything undesignated (TAKAS, and the Fibabanka transfers that
+/// name both debts) falls to file 1 first because its takip started first (TBK
+/// m.102), spilling into file 2 only once file 1 is fully retired.
 public enum DebtSimulation {
     // MARK: - Fixed figures
 
@@ -116,6 +119,15 @@ public enum DebtSimulation {
     public static let file1StartMonth = "2024-08"
     public static let file2StartMonth = "2024-10"
     public static let currentMonth = "2026-08"
+
+    /// Takip tarihleri — the day-based run starts partway through the start
+    /// month for each file.
+    public static let file1StartDay = 15
+    public static let file2StartDay = 14
+    /// The reference "today" the source page was authored against (04.08.2026),
+    /// not the device clock — every verified rate and payment is dated relative
+    /// to this fixed point.
+    public static let referenceDay = 4
 
     // MARK: - Verified monthly ceilings (azami gecikme faizi, %)
 
@@ -235,160 +247,195 @@ public enum DebtSimulation {
         return result
     }
 
-    // MARK: - Splitting shared payments
-
-    /// Payments per month for one file, given how much of the shared money is
-    /// attributed to file 1.
-    ///
-    /// Takas and the "ek hesap ve kredi kartı" transfers name both debts, so
-    /// there is no document that settles the split — hence the slider.
-    static func paymentsByMonth(forFile file: Int, file1Share: Double) -> [String: Double] {
-        let share = file == 1 ? file1Share : 1 - file1Share
-        var result: [String: Double] = [:]
-
-        if file == 1 {
-            for payment in salaryGarnishments {
-                result[payment.month, default: 0] += payment.amount
-            }
-        }
-        for payment in takasDeductions {
-            result[payment.month, default: 0] += payment.amount * share
-        }
-        for payment in fibabankaTransfers {
-            if payment.file1Only {
-                if file == 1 { result[payment.month, default: 0] += payment.amount }
-            } else {
-                result[payment.month, default: 0] += payment.amount * share
-            }
-        }
-        return result
+    private static func daysInMonth(year: Int, month: Int) -> Int {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = 1
+        let calendar = Calendar(identifier: .gregorian)
+        guard
+            let date = calendar.date(from: components),
+            let range = calendar.range(of: .day, in: .month, for: date)
+        else { return 30 }
+        return range.count
     }
 
-    /// Shared payments attributed to one file — the official scenario needs the
-    /// total without running a ledger.
-    static func sharedPaymentTotal(forFile file: Int, file1Share: Double) -> Double {
-        let share = file == 1 ? file1Share : 1 - file1Share
-        var total = takasDeductions.reduce(0) { $0 + $1.amount * share }
-        for payment in fibabankaTransfers {
-            if payment.file1Only {
-                if file == 1 { total += payment.amount }
-            } else {
-                total += payment.amount * share
+    // MARK: - The waterfall ledger
+
+    /// The single time-forward pass both files share: day-based simple interest
+    /// (aylık oran/30 × o aydaki gün sayısı) accrues each month on the
+    /// outstanding principal, then that month's payments retire it in mahsup
+    /// order — maaş haczi and explicitly-designated Fibabanka transfers clear
+    /// file 1's interest then principal; everything undesignated clears file
+    /// 1's interest, then principal, then spills into file 2's interest and
+    /// principal, going negative once a file is overpaid.
+    static func buildWaterfallLedger(rates1: [String: Double], rates2: [String: Double]) -> [CombinedLedgerRow] {
+        let salaryByMonth = Dictionary(grouping: salaryGarnishments, by: \.month)
+        let takasByMonth = Dictionary(grouping: takasDeductions, by: \.month)
+        let fibaByMonth = Dictionary(grouping: fibabankaTransfers, by: \.month)
+
+        var principal1 = file1Principal, interest1 = 0.0
+        var principal2 = file2Principal, interest2 = 0.0
+
+        var year = 2024, month = 8
+        let endMonthKey = currentMonth
+        var isFirstMonth = true
+        var rows: [CombinedLedgerRow] = []
+
+        while String(format: "%04d-%02d", year, month) <= endMonthKey {
+            let ym = String(format: "%04d-%02d", year, month)
+            let daysInThisMonth = daysInMonth(year: year, month: month)
+            let startDay = isFirstMonth ? file1StartDay : 1
+            let isCurrentMonth = ym == endMonthKey
+            let endDay = isCurrentMonth ? referenceDay : daysInThisMonth
+            let days1 = max(0, endDay - startDay + 1)
+            isFirstMonth = false
+
+            let started2 = ym >= file2StartMonth
+            var days2 = 0
+            if started2 {
+                days2 = ym == file2StartMonth
+                    ? max(0, endDay - file2StartDay + 1)
+                    : max(0, endDay - 1 + 1)
             }
-        }
-        return total
-    }
 
-    // MARK: - The ledger
+            let rate1 = rates1[ym] ?? rates1[endMonthKey] ?? 0
+            let rate2 = rates2[ym] ?? rates2[endMonthKey] ?? 0
+            interest1 += principal1 * (rate1 / 100 / 30) * Double(days1)
+            if started2 { interest2 += principal2 * (rate2 / 100 / 30) * Double(days2) }
 
-    /// Simple interest on the outstanding principal — not compounded — with each
-    /// payment clearing accrued interest before it touches principal.
-    static func ledger(
-        startAmount: Double,
-        startMonth: String,
-        rates: [String: Double],
-        payments: [String: Double]
-    ) -> [LedgerEntry] {
-        let timeline = months(from: startMonth, to: currentMonth)
-        var principal = startAmount
-        var accruedInterest: Double = 0
-        var entries: [LedgerEntry] = []
+            var paidThisMonth = 0.0
 
-        for month in timeline {
-            let rate = rates[month] ?? rates[timeline.last ?? month] ?? 0
-            let interest = principal * (rate / 100)
-            accruedInterest += interest
+            for payment in salaryByMonth[ym] ?? [] {
+                var amount = payment.amount
+                paidThisMonth += amount
+                let usedForInterest = min(amount, max(0, interest1))
+                interest1 -= usedForInterest
+                amount -= usedForInterest
+                principal1 -= amount
+            }
+            for payment in (fibaByMonth[ym] ?? []).filter(\.file1Only) {
+                var amount = payment.amount
+                paidThisMonth += amount
+                let usedForInterest = min(amount, max(0, interest1))
+                interest1 -= usedForInterest
+                amount -= usedForInterest
+                principal1 -= amount
+            }
 
-            let paid = payments[month] ?? 0
-            let fromInterest = min(paid, accruedInterest)
-            accruedInterest -= fromInterest
-            principal -= (paid - fromInterest)
+            var undesignated = 0.0
+            undesignated += (takasByMonth[ym] ?? []).reduce(0) { $0 + $1.amount }
+            undesignated += (fibaByMonth[ym] ?? []).filter { !$0.file1Only }.reduce(0) { $0 + $1.amount }
+            if undesignated > 0 {
+                paidThisMonth += undesignated
+                var remaining = undesignated
 
-            entries.append(LedgerEntry(
-                month: month,
-                rate: rate,
-                interest: interest,
-                paid: paid,
-                balance: principal + accruedInterest
+                let usedForInterest1 = min(remaining, max(0, interest1))
+                interest1 -= usedForInterest1
+                remaining -= usedForInterest1
+
+                let usedForPrincipal1 = min(remaining, max(0, principal1))
+                principal1 -= usedForPrincipal1
+                remaining -= usedForPrincipal1
+
+                if remaining > 0 {
+                    let usedForInterest2 = min(remaining, max(0, interest2))
+                    interest2 -= usedForInterest2
+                    remaining -= usedForInterest2
+
+                    let usedForPrincipal2 = min(remaining, max(0, principal2))
+                    principal2 -= usedForPrincipal2
+                    remaining -= usedForPrincipal2
+
+                    if remaining > 0 { principal2 -= remaining }
+                }
+            }
+
+            let balance1 = principal1 + interest1
+            let balance2 = started2 ? principal2 + interest2 : nil
+            rows.append(CombinedLedgerRow(
+                month: ym,
+                file1Rate: rate1,
+                file1Balance: balance1,
+                file2Rate: started2 ? rate2 : nil,
+                file2Balance: balance2,
+                paidThisMonth: paidThisMonth,
+                totalBalance: balance1 + (balance2 ?? 0)
             ))
+
+            month += 1
+            if month > 12 { month = 1; year += 1 }
         }
-        return entries
+
+        return rows
     }
 
     // MARK: - Running a scenario
 
-    /// - Parameter file1Share: 0…1, the fraction of shared payments credited to
-    ///   file 1 (the slider).
-    public static func run(scenario: DebtScenario, file1Share: Double) -> SimulationResult {
+    public static func run(scenario: DebtScenario) -> SimulationResult {
         let totalPaid = totalOfAllPayments
 
         guard scenario.hasMonthlyBreakdown else {
             // No monthly breakdown exists for the bank's own figure, so the
-            // best that can be done is subtract every documented payment from
-            // its declared total.
+            // uncredited total (TAKAS + every Fibabanka transfer) is applied as
+            // one lump sum, in priority order: file 1's official balance first,
+            // any remainder spilling into file 2's.
             let file1Total = file1Principal + file1OfficialInterest + file1Charges
             let file2Total = file2Principal + file2OfficialInterest + file2Charges
-            return SimulationResult(
-                file1Balance: file1Total - (file1CreditedPayments + sharedPaymentTotal(forFile: 1, file1Share: file1Share)),
-                file2Balance: file2Total - sharedPaymentTotal(forFile: 2, file1Share: file1Share),
-                totalPaid: totalPaid,
-                rows: []
-            )
+            var file1Balance = file1Total - file1CreditedPayments
+            var file2Balance = file2Total
+
+            let extra = takasDeductions.reduce(0) { $0 + $1.amount } + fibabankaTransfers.reduce(0) { $0 + $1.amount }
+            let usedByFile1 = min(extra, max(0, file1Balance))
+            file1Balance -= usedByFile1
+            file2Balance -= (extra - usedByFile1)
+
+            return SimulationResult(file1Balance: file1Balance, file2Balance: file2Balance, totalPaid: totalPaid, rows: [])
         }
 
-        let allMonths = months(from: file1StartMonth, to: currentMonth)
-        let file1Rates: [String: Double]
-        let file2Rates: [String: Double]
+        let rates1: [String: Double]
+        let rates2: [String: Double]
         switch scenario {
         case .ceiling:
-            file1Rates = kmhRates
-            file2Rates = cardRates
+            rates1 = kmhRates
+            rates2 = cardRates
         case .flat, .official:
-            file1Rates = Dictionary(uniqueKeysWithValues: allMonths.map { ($0, file1FlatRate) })
-            file2Rates = Dictionary(uniqueKeysWithValues: allMonths.map { ($0, file2FlatRate) })
+            let allMonths = months(from: file1StartMonth, to: currentMonth)
+            rates1 = Dictionary(uniqueKeysWithValues: allMonths.map { ($0, file1FlatRate) })
+            rates2 = Dictionary(uniqueKeysWithValues: allMonths.map { ($0, file2FlatRate) })
         }
 
-        let ledger1 = ledger(
-            startAmount: file1Principal,
-            startMonth: file1StartMonth,
-            rates: file1Rates,
-            payments: paymentsByMonth(forFile: 1, file1Share: file1Share)
-        )
-        let ledger2 = ledger(
-            startAmount: file2Principal,
-            startMonth: file2StartMonth,
-            rates: file2Rates,
-            payments: paymentsByMonth(forFile: 2, file1Share: file1Share)
-        )
-
-        let file2ByMonth = Dictionary(uniqueKeysWithValues: ledger2.map { ($0.month, $0) })
-        let rows = ledger1.map { entry -> CombinedLedgerRow in
-            let second = file2ByMonth[entry.month]
-            return CombinedLedgerRow(
-                month: entry.month,
-                file1Rate: entry.rate,
-                file1Balance: entry.balance,
-                file2Rate: second?.rate,
-                file2Balance: second?.balance,
-                paidThisMonth: entry.paid + (second?.paid ?? 0),
-                totalBalance: entry.balance + (second?.balance ?? 0)
-            )
-        }
+        let rows = buildWaterfallLedger(rates1: rates1, rates2: rates2)
+        let last = rows.last
 
         return SimulationResult(
-            file1Balance: (ledger1.last?.balance ?? 0) + file1Charges,
-            file2Balance: (ledger2.last?.balance ?? 0) + file2Charges,
+            file1Balance: (last?.file1Balance ?? 0) + file1Charges,
+            file2Balance: (last?.file2Balance ?? 0) + file2Charges,
             totalPaid: totalPaid,
             rows: rows
         )
     }
 
     public static let methodologyNote = """
-    Basit faiz: her ay yalnızca kalan anapara üzerinden hesaplanır (bileşik değil); ödemeler önce birikmiş \
-    faize, sonra anaparaya mahsup edilir (TBK m.100). Vekâlet/masraf/BSMV/KKDF/harç bankanın resmî rakamıyla \
-    sabit tutulup sonuca bir kez eklenir (grafiğe dahil değil). "Banka Resmi Rakamı" senaryosunda aylık \
-    kırılım yok.
+    Yöntem (04.08.2026 web araştırması ile doğrulandı): icra faizi gün esaslı, basit faiz olarak \
+    hesaplanır — bileşik faiz uygulanmaz; ay bazında değil, o aydaki gerçek gün sayısınca (aylık \
+    oran/30 × gün) kalan anapara üzerinden işler. Kısmi ödemeler TBK m.100 sırasına göre önce \
+    birikmiş faize, sonra anaparaya mahsup edilir; masraf/vekâlet/BSMV/KKDF/harç bankanın resmî \
+    rakamıyla sabit tutulup sonuca bir kez eklenir (grafiğe dahil değil, çünkü tek tek tahsilat \
+    bazında kaç TL harç kesildiği ayrı ayrı belgeyle doğrulanamadı). "Banka Resmi Rakamı" \
+    senaryosunda günlük kırılım yok.
     """
 
-    public static let splitExplanation = "TAKAS + karışık Fibabanka ödemelerinin Dosya1'e (KMH) payı"
+    /// Fixed by law rather than by a slider — see the module doc comment for
+    /// the three rules this encodes.
+    public static let mahsupPriorityNote = """
+    Mahsup önceliği (artık slider değil, kanun uygulanıyor): Maaş haczi → %100 Dosya1 (İİK — birden \
+    fazla haciz "sıra" usulü: işverene ilk ulaşan haciz, o borç tamamen bitene kadar tek başına \
+    kesinti alır). Fibabanka'da açıkça "ek hesap borcu" yazan 2 ödeme → %100 Dosya1 (TBK m.101 — \
+    borçlunun kendi tayini). TAKAS (26 kalem, dosya belirtilmemiş) ve "ek hesap ve kredi kartı" \
+    yazan belirsiz Fibabanka ödemeleri (5 kalem) → önce Dosya1'e (TBK m.102 — açıklama yoksa ödeme \
+    ilk takip edilen borca mahsup edilir; 162868 takibi 15.08.2024, 234554 takibi 14.10.2024'ten \
+    önce başladı), Dosya1 tamamen kapanınca kalan Dosya2'ye taşar. Kaynak: maaş haczi sıra usulü \
+    (gezicihukuk.net), TBK m.101, TBK m.102 (04.08.2026 doğrulandı).
+    """
 }

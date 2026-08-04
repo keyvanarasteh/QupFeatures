@@ -11,17 +11,15 @@ struct RealDebtView: View {
     @Environment(\.cupertinoColors) private var colors
 
     @State private var scenario: DebtScenario = .official
-    /// Percent of the shared payments credited to file 1.
-    @State private var file1SharePercent: Double = 50
 
     private var result: SimulationResult {
-        DebtSimulation.run(scenario: scenario, file1Share: file1SharePercent / 100)
+        DebtSimulation.run(scenario: scenario)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
             scenarioPicker
-            splitSlider
+            mahsupPriorityNote
             assumptionNote
             resultBanner
             statGrid
@@ -54,24 +52,12 @@ struct RealDebtView: View {
         }
     }
 
-    private var splitSlider: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(DebtSimulation.splitExplanation)
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(colors.mutedFg)
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: Theme.Spacing.sm)
-                Text("%\(Int(file1SharePercent))")
-                    .font(Theme.Typography.code)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(colors.fg)
-                    .monospacedDigit()
-            }
-            Slider(value: $file1SharePercent, in: 0...100, step: 1) {
-                Text(DebtSimulation.splitExplanation)
-            }
-            .accessibilityValue("Yüzde \(Int(file1SharePercent))")
+    private var mahsupPriorityNote: some View {
+        CardView {
+            Text(DebtSimulation.mahsupPriorityNote)
+                .font(Theme.Typography.caption2)
+                .foregroundStyle(colors.fg)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
