@@ -265,10 +265,12 @@ public enum DebtSimulation {
     /// The single time-forward pass both files share: day-based simple interest
     /// (aylık oran/30 × o aydaki gün sayısı) accrues each month on the
     /// outstanding principal, then that month's payments retire it in mahsup
-    /// order — maaş haczi and explicitly-designated Fibabanka transfers clear
-    /// file 1's interest then principal; everything undesignated clears file
-    /// 1's interest, then principal, then spills into file 2's interest and
-    /// principal, going negative once a file is overpaid.
+    /// order. Every channel — maaş haczi, explicitly-designated Fibabanka
+    /// transfers, and everything undesignated — clears file 1's interest,
+    /// then its principal, then only once file 1 reads zero spills into file
+    /// 2's interest and principal. File 1 can't be over-collected once it's
+    /// closed, so only file 2 (last in priority) is left to go negative,
+    /// which is a genuine overpayment rather than an artifact of the run.
     static func buildWaterfallLedger(rates1: [String: Double], rates2: [String: Double]) -> [CombinedLedgerRow] {
         let salaryByMonth = Dictionary(grouping: salaryGarnishments, by: \.month)
         let takasByMonth = Dictionary(grouping: takasDeductions, by: \.month)
@@ -306,29 +308,18 @@ public enum DebtSimulation {
 
             var paidThisMonth = 0.0
 
-            for payment in salaryByMonth[ym] ?? [] {
-                var amount = payment.amount
+            // Every payment routed to file 1 — maaş haczi, "ek hesap borcu"
+            // Fibabanka transfers, and undesignated TAKAS/Fibabanka — shares
+            // one retirement order: file 1's interest, then its principal,
+            // then (only once file 1 reads zero) file 2's interest and
+            // principal. A debt can't be retired below zero, so nothing stays
+            // parked as negative principal generating phantom negative
+            // interest next month — once Dosya1 is closed, the surplus is
+            // Dosya2's, per "Dosya1 tamamen kapanınca kalan Dosya2'ye taşar".
+            func applyToFile1CascadingToFile2(_ amount: Double) {
+                guard amount > 0 else { return }
                 paidThisMonth += amount
-                let usedForInterest = min(amount, max(0, interest1))
-                interest1 -= usedForInterest
-                amount -= usedForInterest
-                principal1 -= amount
-            }
-            for payment in (fibaByMonth[ym] ?? []).filter(\.file1Only) {
-                var amount = payment.amount
-                paidThisMonth += amount
-                let usedForInterest = min(amount, max(0, interest1))
-                interest1 -= usedForInterest
-                amount -= usedForInterest
-                principal1 -= amount
-            }
-
-            var undesignated = 0.0
-            undesignated += (takasByMonth[ym] ?? []).reduce(0) { $0 + $1.amount }
-            undesignated += (fibaByMonth[ym] ?? []).filter { !$0.file1Only }.reduce(0) { $0 + $1.amount }
-            if undesignated > 0 {
-                paidThisMonth += undesignated
-                var remaining = undesignated
+                var remaining = amount
 
                 let usedForInterest1 = min(remaining, max(0, interest1))
                 interest1 -= usedForInterest1
@@ -350,6 +341,16 @@ public enum DebtSimulation {
                     if remaining > 0 { principal2 -= remaining }
                 }
             }
+
+            let salaryTotal = (salaryByMonth[ym] ?? []).reduce(0) { $0 + $1.amount }
+            applyToFile1CascadingToFile2(salaryTotal)
+
+            let file1OnlyFibaTotal = (fibaByMonth[ym] ?? []).filter(\.file1Only).reduce(0) { $0 + $1.amount }
+            applyToFile1CascadingToFile2(file1OnlyFibaTotal)
+
+            let undesignated = (takasByMonth[ym] ?? []).reduce(0) { $0 + $1.amount }
+                + (fibaByMonth[ym] ?? []).filter { !$0.file1Only }.reduce(0) { $0 + $1.amount }
+            applyToFile1CascadingToFile2(undesignated)
 
             let balance1 = principal1 + interest1
             let balance2 = started2 ? principal2 + interest2 : nil
@@ -435,7 +436,9 @@ public enum DebtSimulation {
     borçlunun kendi tayini). TAKAS (26 kalem, dosya belirtilmemiş) ve "ek hesap ve kredi kartı" \
     yazan belirsiz Fibabanka ödemeleri (5 kalem) → önce Dosya1'e (TBK m.102 — açıklama yoksa ödeme \
     ilk takip edilen borca mahsup edilir; 162868 takibi 15.08.2024, 234554 takibi 14.10.2024'ten \
-    önce başladı), Dosya1 tamamen kapanınca kalan Dosya2'ye taşar. Kaynak: maaş haczi sıra usulü \
-    (gezicihukuk.net), TBK m.101, TBK m.102 (04.08.2026 doğrulandı).
+    önce başladı). Kanaldan bağımsız olarak: Dosya1 bir borç kalemini (önce faiz, sonra anapara) \
+    tamamen kapattıktan sonra o kalemde negatife inmez — kalan her kanaldan gelen fazlası Dosya2'ye \
+    taşar, çünkü kapanmış bir borç sıfırın altına tahsil edilemez. Kaynak: maaş haczi sıra usulü \
+    (gezicihukuk.net), TBK m.100–102 (04.08.2026 doğrulandı).
     """
 }
