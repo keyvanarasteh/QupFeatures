@@ -45,6 +45,7 @@ let package = Package(
         .library(name: "ProjectsFeature", targets: ["ProjectsFeature"]),
         .library(name: "InfoPages", targets: ["InfoPages"]),
         .library(name: "DynamicPagesFeature", targets: ["DynamicPagesFeature"]),
+        .library(name: "IsbankDebtFeature", targets: ["IsbankDebtFeature"]),
     ],
     dependencies: [
         .package(path: "../QupCore"),
@@ -87,6 +88,19 @@ let package = Package(
                 .product(name: "LayoutSystem", package: "QupUX"),
             ],
             path: "QupFeaturesSource/Sources/ScratchFeature"
+        ),
+        .target(
+            name: "IsbankDebtFeature",
+            dependencies: [
+                .product(name: "FeatureContracts", package: "QupFeatureContracts"),
+                .product(name: "DesignSystem", package: "QupDesignSystem"),
+            ],
+            path: "QupFeaturesSource/Sources/IsbankDebtFeature"
+        ),
+        .testTarget(
+            name: "IsbankDebtFeatureTests",
+            dependencies: ["IsbankDebtFeature"],
+            path: "QupFeaturesSource/Tests/IsbankDebtFeatureTests"
         ),
         .testTarget(
             name: "ScratchFeatureTests",
