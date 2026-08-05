@@ -84,7 +84,7 @@ public final class WikiViewModel {
         error = e.localizedDescription
     }
 
-    private func clearError() {
+    public func clearError() {
         error = nil
     }
 

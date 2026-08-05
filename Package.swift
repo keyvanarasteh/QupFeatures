@@ -155,6 +155,7 @@ let package = Package(
         .target(
             name: "WikiUI",
             dependencies: [
+                .product(name: "FeatureContracts", package: "QupFeatureContracts"),
                 .product(name: "WikiAPI", package: "QupAPI"),
                 .product(name: "DesignSystem", package: "QupDesignSystem"),
                 .product(name: "QupCore", package: "QupCore"),

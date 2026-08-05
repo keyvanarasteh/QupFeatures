@@ -58,12 +58,12 @@ public struct WikiArticleTableView: View {
             // Column headers
             HStack(spacing: 0) {
                 // Checkbox column
-                Toggle(isOn: Binding(
-                    get: { selectedIds.count == articles.count && !articles.isEmpty },
-                    set: { onSelectAll?($0) }
-                )) { EmptyView() }
-                .toggleStyle(.checkbox)
-                .controlSize(.small)
+                selectionToggle(
+                    isOn: Binding(
+                        get: { selectedIds.count == articles.count && !articles.isEmpty },
+                        set: { onSelectAll?($0) }
+                    )
+                )
                 .frame(width: 40)
                 .padding(.leading, Theme.Spacing.sm)
 
@@ -127,16 +127,16 @@ public struct WikiArticleTableView: View {
             onRowTap?(article)
         } label: {
             HStack(spacing: 0) {
-                Toggle(isOn: Binding(
-                    get: { selectedIds.contains(article.id) },
-                    set: { selected in
-                        if selected { selectedIds.insert(article.id) }
-                        else { selectedIds.remove(article.id) }
-                        onSelect?(article.id, selected)
-                    }
-                )) { EmptyView() }
-                .toggleStyle(.checkbox)
-                .controlSize(.small)
+                selectionToggle(
+                    isOn: Binding(
+                        get: { selectedIds.contains(article.id) },
+                        set: { selected in
+                            if selected { selectedIds.insert(article.id) }
+                            else { selectedIds.remove(article.id) }
+                            onSelect?(article.id, selected)
+                        }
+                    )
+                )
                 .frame(width: 40)
                 .padding(.leading, Theme.Spacing.sm)
 
@@ -208,6 +208,26 @@ public struct WikiArticleTableView: View {
                 .font(Theme.Typography.captionEmphasized)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    /// macOS checkbox Toggle; square glyph button on iOS (`.checkbox` is macOS-only).
+    @ViewBuilder
+    private func selectionToggle(isOn: Binding<Bool>) -> some View {
+        #if os(macOS)
+        Toggle(isOn: isOn) { EmptyView() }
+            .toggleStyle(.checkbox)
+            .controlSize(.small)
+            .labelsHidden()
+        #else
+        Button {
+            isOn.wrappedValue.toggle()
+        } label: {
+            Image(systemName: isOn.wrappedValue ? "checkmark.square.fill" : "square")
+                .font(.body)
+                .foregroundStyle(isOn.wrappedValue ? colors.primary : .secondary)
+        }
+        .buttonStyle(.plain)
+        #endif
     }
 }
 

@@ -26,15 +26,25 @@ public struct WikiRevisionHistoryView: View {
     }
 
     public var body: some View {
-        HSplitView {
-            // Revision list
-            revisionsList
-
-            // Snapshot viewer
-            if showSnapshot, let rev = selectedRevision {
-                snapshotView(rev)
-                    .frame(minWidth: 300)
+        Group {
+            #if os(macOS)
+            HSplitView {
+                revisionsList
+                if showSnapshot, let rev = selectedRevision {
+                    snapshotView(rev)
+                        .frame(minWidth: 300)
+                }
             }
+            #else
+            VStack(spacing: 0) {
+                revisionsList
+                if showSnapshot, let rev = selectedRevision {
+                    Divider()
+                    snapshotView(rev)
+                        .frame(minHeight: 200)
+                }
+            }
+            #endif
         }
         .task {
             await viewModel.loadRevisions(articleId: articleId)

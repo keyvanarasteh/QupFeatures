@@ -56,12 +56,24 @@ public struct WikiArticleCardView: View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             HStack {
                 if let onSelect {
+                    #if os(macOS)
                     Toggle(isOn: Binding(
                         get: { selected },
                         set: { onSelect($0 ? article.id : article.id) }
                     )) { EmptyView() }
                         .toggleStyle(.checkbox)
                         .controlSize(.small)
+                        .labelsHidden()
+                    #else
+                    Button {
+                        onSelect(article.id)
+                    } label: {
+                        Image(systemName: selected ? "checkmark.square.fill" : "square")
+                            .font(.body)
+                            .foregroundStyle(selected ? colors.primary : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                    #endif
                 }
 
                 Text(article.title)
