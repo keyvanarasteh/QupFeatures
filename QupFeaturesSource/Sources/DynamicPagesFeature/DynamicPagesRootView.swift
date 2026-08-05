@@ -43,6 +43,75 @@ public struct DynamicPagesRootView: View {
     }
 
     public var body: some View {
+        container
+            .environmentObject(state)
+            .task {
+                await state.loadPages()
+                if let initialPageId {
+                    selectedPageId = initialPageId
+                    await state.selectPage(id: initialPageId)
+                }
+            }
+            .onChange(of: selectedPageId) { _, newValue in
+                Task { await state.selectPage(id: newValue) }
+            }
+            .sheet(isPresented: $createOpen) {
+                DynamicPageFormSheet { input in
+                    if let created = await state.createPage(input) {
+                        selectedPageId = created.id
+                        return true
+                    }
+                    return false
+                }
+                .environmentObject(state)
+            }
+            .confirmationDialog(
+                "Delete \"\(pendingDelete?.title ?? "")\"?",
+                isPresented: Binding(
+                    get: { pendingDelete != nil },
+                    set: { if !$0 { pendingDelete = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Delete Page", role: .destructive) {
+                    if let page = pendingDelete {
+                        Task {
+                            if await state.deletePage(id: page.id) {
+                                selectedPageId = nil
+                            }
+                        }
+                    }
+                    pendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) { pendingDelete = nil }
+            } message: {
+                Text("Soft-deletes the page. Its page_key becomes reusable.")
+            }
+    }
+
+    /// Platform-specific list/detail container.
+    ///
+    /// macOS: the app shell (`SidebarNavigationLayout`) already hosts every
+    /// feature inside its own `NavigationSplitView` with its own toolbar.
+    /// Nesting a second `NavigationSplitView` here made AppKit render the
+    /// inner split view's sidebar material as an opaque bar that stomped on
+    /// this list's header and search field. `HSplitView` gives the same
+    /// resizable two-pane layout without nesting split views (the same
+    /// pattern `regularDetail` already uses one level down).
+    @ViewBuilder
+    private var container: some View {
+        #if os(macOS)
+        HSplitView {
+            DynamicPagesListView(
+                selectedPageId: $selectedPageId,
+                onCreate: { createOpen = true }
+            )
+            .frame(minWidth: 240, idealWidth: 300, maxWidth: 380)
+
+            detailBody
+                .frame(minWidth: 320, maxWidth: .infinity, maxHeight: .infinity)
+        }
+        #else
         NavigationSplitView {
             DynamicPagesListView(
                 selectedPageId: $selectedPageId,
@@ -52,50 +121,8 @@ public struct DynamicPagesRootView: View {
         } detail: {
             detailBody
         }
-        .environmentObject(state)
         .navigationTitle("Dynamic Pages")
-        .task {
-            await state.loadPages()
-            if let initialPageId {
-                selectedPageId = initialPageId
-                await state.selectPage(id: initialPageId)
-            }
-        }
-        .onChange(of: selectedPageId) { _, newValue in
-            Task { await state.selectPage(id: newValue) }
-        }
-        .sheet(isPresented: $createOpen) {
-            DynamicPageFormSheet { input in
-                if let created = await state.createPage(input) {
-                    selectedPageId = created.id
-                    return true
-                }
-                return false
-            }
-            .environmentObject(state)
-        }
-        .confirmationDialog(
-            "Delete \"\(pendingDelete?.title ?? "")\"?",
-            isPresented: Binding(
-                get: { pendingDelete != nil },
-                set: { if !$0 { pendingDelete = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Delete Page", role: .destructive) {
-                if let page = pendingDelete {
-                    Task {
-                        if await state.deletePage(id: page.id) {
-                            selectedPageId = nil
-                        }
-                    }
-                }
-                pendingDelete = nil
-            }
-            Button("Cancel", role: .cancel) { pendingDelete = nil }
-        } message: {
-            Text("Soft-deletes the page. Its page_key becomes reusable.")
-        }
+        #endif
     }
 
     @ViewBuilder
